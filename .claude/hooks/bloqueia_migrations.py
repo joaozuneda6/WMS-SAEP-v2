@@ -59,9 +59,7 @@ def main() -> int:
     if caminho is None:
         return 0
 
-    raiz = Path(
-        evento.get('cwd') or os.environ.get('CLAUDE_PROJECT_DIR') or Path.cwd()
-    )
+    raiz = Path(evento.get('cwd') or os.environ.get('CLAUDE_PROJECT_DIR') or Path.cwd())
 
     if not eh_migration(caminho, raiz):
         return 0
