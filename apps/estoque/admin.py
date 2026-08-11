@@ -192,3 +192,17 @@ class MovimentacaoEstoqueAdmin(admin.ModelAdmin):
     search_fields = ('material__nome', 'material__codigo')
     ordering = ('-criado_em',)
     readonly_fields = ('criado_em',)
+
+    # Ledger imutável (LED-01/LED-02): toda linha nasce de um service que
+    # também muta o saldo na mesma transação. Add pelo admin insere ledger
+    # sem tocar o saldo; change/delete colidiriam com `save()`/`delete()` do
+    # model, que já levantam `MovimentacaoEstoqueImutavel` — sem o guard aqui
+    # isso vira 500 em vez de 403. Leitura fica aberta.
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

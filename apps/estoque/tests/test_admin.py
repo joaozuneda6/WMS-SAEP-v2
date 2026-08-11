@@ -14,8 +14,13 @@ from django.test import RequestFactory
 from django.urls import reverse
 
 from apps.accounts.models import User
-from apps.estoque.admin import EstoqueAdmin, MaterialAdmin, SaldoEstoqueAdmin
-from apps.estoque.models import Estoque, Material, SaldoEstoque
+from apps.estoque.admin import (
+    EstoqueAdmin,
+    MaterialAdmin,
+    MovimentacaoEstoqueAdmin,
+    SaldoEstoqueAdmin,
+)
+from apps.estoque.models import Estoque, Material, MovimentacaoEstoque, SaldoEstoque
 
 
 @pytest.fixture
@@ -328,5 +333,104 @@ def test_changelist_de_saldo_permanece_legivel(
     client.force_login(staff_de_saldo)
 
     resposta = client.get(reverse('admin:estoque_saldoestoque_changelist'))
+
+    assert resposta.status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# MovimentacaoEstoqueAdmin — ledger imutável, somente-leitura (issue #113)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def movimentacao_admin():
+    return MovimentacaoEstoqueAdmin(MovimentacaoEstoque, AdminSite())
+
+
+@pytest.fixture
+def staff_de_movimentacao(db, setor_obras):
+    """Staff **não** superusuário, com todas as permissões Django de `MovimentacaoEstoque`.
+
+    O Django, sozinho, autorizaria este usuário. Qualquer 403 nas telas de
+    movimentação só pode vir do guard deste issue.
+    """
+    usuario = User.objects.create_user(
+        matricula='905',
+        nome='Staff Movimentacao',
+        password='senha',
+        setor=setor_obras,
+        is_staff=True,
+    )
+    usuario.user_permissions.set(
+        Permission.objects.filter(
+            content_type=ContentType.objects.get_for_model(MovimentacaoEstoque),
+        )
+    )
+    return usuario
+
+
+def test_movimentacao_admin_nega_add_change_e_delete(
+    movimentacao_admin, request_de, superuser
+):
+    requisicao = request_de(superuser)
+
+    assert movimentacao_admin.has_add_permission(requisicao) is False
+    assert movimentacao_admin.has_change_permission(requisicao) is False
+    assert movimentacao_admin.has_delete_permission(requisicao) is False
+
+
+def test_add_de_movimentacao_nega(client, staff_de_movimentacao):
+    """Linha de ledger sem mutação de saldo correspondente quebra LED-01/LED-02."""
+    client.force_login(staff_de_movimentacao)
+
+    resposta = client.get(reverse('admin:estoque_movimentacaoestoque_add'))
+
+    assert resposta.status_code == 403
+
+
+def test_change_de_movimentacao_nega_sem_derrubar_em_500(
+    client, staff_de_movimentacao, movimentacao_criada_pelo_chefe
+):
+    """`save()` do model levanta `MovimentacaoEstoqueImutavel` — sem o guard do
+    admin isso cairia em 500 no POST em vez do 403 de `PermissionDenied`."""
+    client.force_login(staff_de_movimentacao)
+
+    resposta = client.post(
+        reverse(
+            'admin:estoque_movimentacaoestoque_change',
+            args=[movimentacao_criada_pelo_chefe.pk],
+        ),
+        {},
+    )
+
+    assert resposta.status_code == 403
+
+
+def test_delete_de_movimentacao_nega_sem_derrubar_em_500(
+    client, staff_de_movimentacao, movimentacao_criada_pelo_chefe
+):
+    client.force_login(staff_de_movimentacao)
+
+    resposta = client.post(
+        reverse(
+            'admin:estoque_movimentacaoestoque_delete',
+            args=[movimentacao_criada_pelo_chefe.pk],
+        ),
+        {'post': 'yes'},
+    )
+
+    assert resposta.status_code == 403
+    assert MovimentacaoEstoque.objects.filter(
+        pk=movimentacao_criada_pelo_chefe.pk
+    ).exists()
+
+
+def test_changelist_de_movimentacao_permanece_legivel(
+    client, staff_de_movimentacao, movimentacao_criada_pelo_chefe
+):
+    """A negação é de escrita, não de consulta."""
+    client.force_login(staff_de_movimentacao)
+
+    resposta = client.get(reverse('admin:estoque_movimentacaoestoque_changelist'))
 
     assert resposta.status_code == 200
