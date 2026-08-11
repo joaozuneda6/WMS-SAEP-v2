@@ -53,14 +53,16 @@ issues #102/#104/#105 — este issue cobre o que sobrou.
 - Nenhum service, policy, model ou migration.
 - Leitura (`list_display`, `list_filter`, `search_fields`, changelist,
   `has_view_permission` default) segue aberta em todos os models acima.
-- `ItemSaidaExcepcionalInline` não ganha guard próprio neste issue — a inline
-  já herda `has_add/change/delete_permission` do parent `SaidaExcepcionalAdmin`
-  quando o parent nega (`InlineModelAdmin` consulta o admin do model pai por
-  padrão só se o inline não sobrescrever; aqui `ItemSaidaExcepcionalInline`
-  não sobrescreve nada, então herda do próprio `ModelAdmin` do inline, que é
-  o default do Django — **confirmar em teste** que negar no
-  `SaidaExcepcionalAdmin` basta para a inline, ou adicionar guard explícito se
-  o teste mostrar que não basta).
+- **Correção pós-implementação**: `ItemSaidaExcepcionalInline` **precisou** de
+  guard próprio — `InlineModelAdmin.has_add_permission` não herda do
+  `ModelAdmin` do model pai (chama `super().has_add_permission(request)`, que
+  olha só a permissão Django de `ItemSaidaExcepcional`). Confirmado por teste
+  (`test_item_inline_nega_add_change_e_delete`) e implementado.
+- GET na change view individual de `SaidaExcepcional` continua 200 (modo
+  consulta) mesmo com `has_change_permission = False` — `has_view_permission`
+  não foi sobrescrito e segue default (baseado na permissão Django `view_*`).
+  Só o POST fecha em 403. Documentado errado numa revisão anterior deste
+  plano; corrigido após rodar os testes.
 
 ## Arquivos tocados
 

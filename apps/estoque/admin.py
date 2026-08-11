@@ -140,6 +140,19 @@ class ItemSaidaExcepcionalInline(admin.TabularInline):
     model = ItemSaidaExcepcional
     extra = 1
 
+    # `InlineModelAdmin.has_add_permission` não herda de `SaidaExcepcionalAdmin`
+    # — sem guard próprio, um staff com permissão Django de `ItemSaidaExcepcional`
+    # continuaria adicionando/mudando itens pelo formset mesmo com o parent
+    # bloqueado.
+    def has_add_permission(self, request, obj):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(SaidaExcepcional)
 class SaidaExcepcionalAdmin(admin.ModelAdmin):
@@ -154,6 +167,18 @@ class SaidaExcepcionalAdmin(admin.ModelAdmin):
     search_fields = ('numero_publico', 'estoque__nome')
     ordering = ('-criado_em',)
     inlines = [ItemSaidaExcepcionalInline]
+
+    # Criar/mudar/apagar pelo admin gera documento sem baixa de saldo e sem
+    # ledger (EST-saida-01 só vale no service `registrar_saida_excepcional`).
+    # Leitura via changelist fica aberta.
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(SequenciaSaidaExcepcional)

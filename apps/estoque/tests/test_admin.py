@@ -434,3 +434,105 @@ def test_changelist_de_movimentacao_permanece_legivel(
     resposta = client.get(reverse('admin:estoque_movimentacaoestoque_changelist'))
 
     assert resposta.status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# SaidaExcepcionalAdmin — sem baixa de saldo/ledger pelo admin (issue #113)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def staff_de_saida(db, setor_obras):
+    """Staff **não** superusuário, com todas as permissões Django de `SaidaExcepcional`.
+
+    O Django, sozinho, autorizaria este usuário. Qualquer 403 nas telas de
+    saída excepcional só pode vir do guard deste issue.
+    """
+    from apps.estoque.models import SaidaExcepcional
+
+    usuario = User.objects.create_user(
+        matricula='906',
+        nome='Staff Saida',
+        password='senha',
+        setor=setor_obras,
+        is_staff=True,
+    )
+    usuario.user_permissions.set(
+        Permission.objects.filter(
+            content_type=ContentType.objects.get_for_model(SaidaExcepcional),
+        )
+    )
+    return usuario
+
+
+def test_add_de_saida_nega(client, staff_de_saida):
+    """Add pelo admin gera documento sem baixa de saldo e sem ledger."""
+    client.force_login(staff_de_saida)
+
+    resposta = client.get(reverse('admin:estoque_saidaexcepcional_add'))
+
+    assert resposta.status_code == 403
+
+
+def test_change_de_saida_responde_em_modo_consulta(
+    client, staff_de_saida, saida_registrada
+):
+    """GET renderiza somente-leitura: `has_view_permission` segue default e não
+    depende de `has_change_permission`. Só o POST fecha (teste abaixo)."""
+    client.force_login(staff_de_saida)
+
+    resposta = client.get(
+        reverse('admin:estoque_saidaexcepcional_change', args=[saida_registrada.pk])
+    )
+
+    assert resposta.status_code == 200
+
+
+def test_post_de_saida_nega(client, staff_de_saida, saida_registrada):
+    client.force_login(staff_de_saida)
+
+    resposta = client.post(
+        reverse('admin:estoque_saidaexcepcional_change', args=[saida_registrada.pk]),
+        {},
+    )
+
+    assert resposta.status_code == 403
+
+
+def test_delete_de_saida_nega(client, staff_de_saida, saida_registrada):
+    client.force_login(staff_de_saida)
+
+    resposta = client.post(
+        reverse('admin:estoque_saidaexcepcional_delete', args=[saida_registrada.pk]),
+        {'post': 'yes'},
+    )
+
+    from apps.estoque.models import SaidaExcepcional
+
+    assert resposta.status_code == 403
+    assert SaidaExcepcional.objects.filter(pk=saida_registrada.pk).exists()
+
+
+def test_changelist_de_saida_permanece_legivel(
+    client, staff_de_saida, saida_registrada
+):
+    """A negação é de escrita, não de consulta."""
+    client.force_login(staff_de_saida)
+
+    resposta = client.get(reverse('admin:estoque_saidaexcepcional_changelist'))
+
+    assert resposta.status_code == 200
+
+
+def test_item_inline_nega_add_change_e_delete(request_de, superuser, saida_registrada):
+    """`InlineModelAdmin.has_add_permission` não herda de `SaidaExcepcionalAdmin`
+    por padrão — precisa de guard próprio pra cumprir a AC "e itens" do #113."""
+    from apps.estoque.admin import ItemSaidaExcepcionalInline
+    from apps.estoque.models import SaidaExcepcional
+
+    inline = ItemSaidaExcepcionalInline(SaidaExcepcional, AdminSite())
+    requisicao = request_de(superuser)
+
+    assert inline.has_add_permission(requisicao, saida_registrada) is False
+    assert inline.has_change_permission(requisicao, saida_registrada) is False
+    assert inline.has_delete_permission(requisicao, saida_registrada) is False
