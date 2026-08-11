@@ -120,13 +120,18 @@ class ItemRequisicaoAdmin(admin.ModelAdmin):
 class SequenciaRequisicaoAdmin(admin.ModelAdmin):
     list_display = ('ano', 'ultimo_numero')
     ordering = ('-ano',)
-    readonly_fields = ('ultimo_numero',)
+    readonly_fields = ('ano', 'ultimo_numero')
 
     # Linha nasce por `get_or_create` no service na primeira emissão de
     # número do ano; sem caminho legítimo de add pelo admin. Regredir
     # `ultimo_numero` à mão colide com `numero_publico` unique no próximo
-    # envio (`IntegrityError` → 500).
+    # envio (`IntegrityError` → 500). Apagar ou trocar `ano` tem o mesmo
+    # efeito prático: o ano original fica sem sequência e o próximo
+    # `get_or_create` recria do zero, reemitindo números já usados.
     def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
         return False
 
 

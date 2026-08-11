@@ -185,13 +185,18 @@ class SaidaExcepcionalAdmin(admin.ModelAdmin):
 class SequenciaSaidaExcepcionalAdmin(admin.ModelAdmin):
     list_display = ('ano', 'ultimo_numero')
     ordering = ('-ano',)
-    readonly_fields = ('ultimo_numero',)
+    readonly_fields = ('ano', 'ultimo_numero')
 
     # Linha nasce por `get_or_create` no service na primeira emissão de
     # número do ano; sem caminho legítimo de add pelo admin. Regredir
     # `ultimo_numero` à mão colide com `numero_publico` unique no próximo
-    # envio (`IntegrityError` → 500).
+    # envio (`IntegrityError` → 500). Apagar ou trocar `ano` tem o mesmo
+    # efeito prático: o ano original fica sem sequência e o próximo
+    # `get_or_create` recria do zero, reemitindo números já usados.
     def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
         return False
 
 
@@ -211,9 +216,14 @@ class ImportacaoSCPIAdmin(admin.ModelAdmin):
     readonly_fields = ('arquivo_hash', 'importado_em')
 
     # Importação nasce por `confirmar_importacao_scpi`; add manual não tem
-    # caminho legítimo (sem CSV nem preview por trás). Apagar libera
-    # reimportação do mesmo arquivo (dedup por `arquivo_hash`).
+    # caminho legítimo (sem CSV nem preview por trás). `status`/`total_*`/
+    # `importado_por` são metadados de auditoria da confirmação — editá-los
+    # falsifica a trilha de quem importou o quê. Apagar libera reimportação
+    # do mesmo arquivo (dedup por `arquivo_hash`).
     def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
         return False
 
     def has_delete_permission(self, request, obj=None):

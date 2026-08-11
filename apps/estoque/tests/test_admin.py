@@ -564,6 +564,7 @@ def test_sequencia_saida_admin_nega_add(sequencia_saida_admin, request_de, super
 
 def test_ultimo_numero_de_sequencia_saida_declarado_readonly(sequencia_saida_admin):
     assert 'ultimo_numero' in sequencia_saida_admin.readonly_fields
+    assert 'ano' in sequencia_saida_admin.readonly_fields
 
 
 def test_ultimo_numero_de_sequencia_saida_fora_do_formulario(
@@ -574,6 +575,7 @@ def test_ultimo_numero_de_sequencia_saida_fora_do_formulario(
     )
 
     assert 'ultimo_numero' not in formulario.base_fields
+    assert 'ano' not in formulario.base_fields
 
 
 def test_post_no_admin_nao_regride_ultimo_numero_de_saida(
@@ -594,6 +596,55 @@ def test_post_no_admin_nao_regride_ultimo_numero_de_saida(
 
     sequencia_de_saida.refresh_from_db()
     assert sequencia_de_saida.ultimo_numero == numero_original
+
+
+def test_post_no_admin_nao_muda_ano_de_sequencia_saida(
+    client, superuser, sequencia_de_saida
+):
+    """Trocar `ano` "move" o contador pra outro ano com o mesmo efeito de
+    apagar: o ano original fica sem sequência e o próximo `get_or_create`
+    reemite números já usados."""
+    client.force_login(superuser)
+    ano_original = sequencia_de_saida.ano
+
+    client.post(
+        reverse(
+            'admin:estoque_sequenciasaidaexcepcional_change',
+            args=[sequencia_de_saida.pk],
+        ),
+        {
+            'ano': str(ano_original + 1),
+            'ultimo_numero': str(sequencia_de_saida.ultimo_numero),
+        },
+    )
+
+    sequencia_de_saida.refresh_from_db()
+    assert sequencia_de_saida.ano == ano_original
+
+
+def test_sequencia_saida_admin_nega_delete(
+    sequencia_saida_admin, request_de, superuser
+):
+    assert sequencia_saida_admin.has_delete_permission(request_de(superuser)) is False
+
+
+def test_delete_de_sequencia_saida_nega(client, superuser, sequencia_de_saida):
+    """Apagar reseta a numeração — próximo `get_or_create` recria do zero e
+    colide com `numero_publico` já emitido para o mesmo ano."""
+    client.force_login(superuser)
+
+    resposta = client.post(
+        reverse(
+            'admin:estoque_sequenciasaidaexcepcional_delete',
+            args=[sequencia_de_saida.pk],
+        ),
+        {'post': 'yes'},
+    )
+
+    from apps.estoque.models import SequenciaSaidaExcepcional
+
+    assert resposta.status_code == 403
+    assert SequenciaSaidaExcepcional.objects.filter(pk=sequencia_de_saida.pk).exists()
 
 
 # ---------------------------------------------------------------------------
@@ -639,6 +690,30 @@ def test_add_de_importacao_nega(client, staff_de_importacao):
     resposta = client.get(reverse('admin:estoque_importacaoscpi_add'))
 
     assert resposta.status_code == 403
+
+
+def test_change_de_importacao_nega(client, staff_de_importacao, importacao_scpi):
+    """`status`/`total_*`/`importado_por` são metadados de auditoria — editá-los
+    pelo admin falsifica a trilha de quem importou o quê."""
+    client.force_login(staff_de_importacao)
+    status_original = importacao_scpi.status
+
+    resposta = client.post(
+        reverse('admin:estoque_importacaoscpi_change', args=[importacao_scpi.pk]),
+        {
+            'arquivo_nome': importacao_scpi.arquivo_nome,
+            'importado_por': str(importacao_scpi.importado_por_id),
+            'estoque': str(importacao_scpi.estoque_id),
+            'status': 'com_alertas',
+            'total_linhas': '999',
+            'total_novos': '999',
+            'total_divergentes': '999',
+        },
+    )
+
+    assert resposta.status_code == 403
+    importacao_scpi.refresh_from_db()
+    assert importacao_scpi.status == status_original
 
 
 def test_delete_de_importacao_nega(client, staff_de_importacao, importacao_scpi):

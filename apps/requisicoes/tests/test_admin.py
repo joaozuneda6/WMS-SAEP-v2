@@ -443,6 +443,7 @@ def test_sequencia_requisicao_admin_nega_add(sequencia_admin, request_de, superu
 
 def test_ultimo_numero_de_sequencia_requisicao_declarado_readonly(sequencia_admin):
     assert 'ultimo_numero' in sequencia_admin.readonly_fields
+    assert 'ano' in sequencia_admin.readonly_fields
 
 
 def test_ultimo_numero_de_sequencia_requisicao_fora_do_formulario(
@@ -453,6 +454,7 @@ def test_ultimo_numero_de_sequencia_requisicao_fora_do_formulario(
     )
 
     assert 'ultimo_numero' not in formulario.base_fields
+    assert 'ano' not in formulario.base_fields
 
 
 def test_post_no_admin_nao_regride_ultimo_numero_de_requisicao(
@@ -470,6 +472,45 @@ def test_post_no_admin_nao_regride_ultimo_numero_de_requisicao(
 
     sequencia_requisicao.refresh_from_db()
     assert sequencia_requisicao.ultimo_numero == 10
+
+
+def test_post_no_admin_nao_muda_ano_de_sequencia_requisicao(
+    client, superuser, sequencia_requisicao
+):
+    """Trocar `ano` "move" o contador — mesmo efeito prático de apagar."""
+    client.force_login(superuser)
+
+    client.post(
+        reverse(
+            'admin:requisicoes_sequenciarequisicao_change',
+            args=[sequencia_requisicao.pk],
+        ),
+        {'ano': '2027', 'ultimo_numero': '10'},
+    )
+
+    sequencia_requisicao.refresh_from_db()
+    assert sequencia_requisicao.ano == 2026
+
+
+def test_sequencia_requisicao_admin_nega_delete(sequencia_admin, request_de, superuser):
+    assert sequencia_admin.has_delete_permission(request_de(superuser)) is False
+
+
+def test_delete_de_sequencia_requisicao_nega(client, superuser, sequencia_requisicao):
+    """Apagar reseta a numeração — próximo `get_or_create` recria do zero e
+    colide com `numero_publico` já emitido para o mesmo ano."""
+    client.force_login(superuser)
+
+    resposta = client.post(
+        reverse(
+            'admin:requisicoes_sequenciarequisicao_delete',
+            args=[sequencia_requisicao.pk],
+        ),
+        {'post': 'yes'},
+    )
+
+    assert resposta.status_code == 403
+    assert SequenciaRequisicao.objects.filter(pk=sequencia_requisicao.pk).exists()
 
 
 # ---------------------------------------------------------------------------
