@@ -470,3 +470,74 @@ def test_post_no_admin_nao_regride_ultimo_numero_de_requisicao(
 
     sequencia_requisicao.refresh_from_db()
     assert sequencia_requisicao.ultimo_numero == 10
+
+
+# ---------------------------------------------------------------------------
+# RequisicaoAdmin — sem add/delete pelo admin (issue #113)
+# ---------------------------------------------------------------------------
+
+
+def test_requisicao_admin_nega_add_e_delete(requisicao_admin, request_de, superuser):
+    requisicao = request_de(superuser)
+
+    assert requisicao_admin.has_add_permission(requisicao) is False
+    assert requisicao_admin.has_delete_permission(requisicao) is False
+
+
+def test_add_de_requisicao_nega(client, staff_de_requisicao):
+    """Criação passa a ser exclusiva do service `criar_requisicao`.
+
+    Sem o guard, os três campos de pessoa virando readonly deixaria o POST de
+    add sem valor pra eles — `IntegrityError` (NOT NULL) em vez de 403.
+    """
+    client.force_login(staff_de_requisicao)
+
+    resposta = client.get(reverse('admin:requisicoes_requisicao_add'))
+
+    assert resposta.status_code == 403
+
+
+def test_delete_de_requisicao_nega(client, staff_de_requisicao, req_historico_obras):
+    client.force_login(staff_de_requisicao)
+
+    resposta = client.post(
+        reverse('admin:requisicoes_requisicao_delete', args=[req_historico_obras.pk]),
+        {'post': 'yes'},
+    )
+
+    assert resposta.status_code == 403
+    assert Requisicao.objects.filter(pk=req_historico_obras.pk).exists()
+
+
+def test_pessoas_da_requisicao_declaradas_readonly(requisicao_admin):
+    for campo in ('criador', 'beneficiario', 'setor_beneficiario'):
+        assert campo in requisicao_admin.readonly_fields
+
+
+def test_pessoas_da_requisicao_fora_do_formulario(
+    requisicao_admin, request_de, superuser, req_historico_obras
+):
+    formulario = requisicao_admin.get_form(
+        request_de(superuser), obj=req_historico_obras
+    )
+
+    assert 'criador' not in formulario.base_fields
+    assert 'beneficiario' not in formulario.base_fields
+    assert 'setor_beneficiario' not in formulario.base_fields
+
+
+def test_post_no_admin_nao_troca_beneficiario_da_requisicao(
+    client, superuser, req_historico_obras, outro_usuario_obras
+):
+    client.force_login(superuser)
+    beneficiario_original_id = req_historico_obras.beneficiario_id
+
+    client.post(
+        reverse('admin:requisicoes_requisicao_change', args=[req_historico_obras.pk]),
+        _payload_requisicao(
+            req_historico_obras, beneficiario=str(outro_usuario_obras.pk)
+        ),
+    )
+
+    req_historico_obras.refresh_from_db()
+    assert req_historico_obras.beneficiario_id == beneficiario_original_id
