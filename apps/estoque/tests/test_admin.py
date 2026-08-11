@@ -536,3 +536,122 @@ def test_item_inline_nega_add_change_e_delete(request_de, superuser, saida_regis
     assert inline.has_add_permission(requisicao, saida_registrada) is False
     assert inline.has_change_permission(requisicao, saida_registrada) is False
     assert inline.has_delete_permission(requisicao, saida_registrada) is False
+
+
+# ---------------------------------------------------------------------------
+# SequenciaSaidaExcepcionalAdmin — numeração não pode regredir (issue #113)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def sequencia_saida_admin():
+    from apps.estoque.admin import SequenciaSaidaExcepcionalAdmin
+    from apps.estoque.models import SequenciaSaidaExcepcional
+
+    return SequenciaSaidaExcepcionalAdmin(SequenciaSaidaExcepcional, AdminSite())
+
+
+@pytest.fixture
+def sequencia_de_saida(db, saida_registrada):
+    from apps.estoque.models import SequenciaSaidaExcepcional
+
+    return SequenciaSaidaExcepcional.objects.get(ano=saida_registrada.criado_em.year)
+
+
+def test_sequencia_saida_admin_nega_add(sequencia_saida_admin, request_de, superuser):
+    assert sequencia_saida_admin.has_add_permission(request_de(superuser)) is False
+
+
+def test_ultimo_numero_de_sequencia_saida_declarado_readonly(sequencia_saida_admin):
+    assert 'ultimo_numero' in sequencia_saida_admin.readonly_fields
+
+
+def test_ultimo_numero_de_sequencia_saida_fora_do_formulario(
+    sequencia_saida_admin, request_de, superuser, sequencia_de_saida
+):
+    formulario = sequencia_saida_admin.get_form(
+        request_de(superuser), obj=sequencia_de_saida
+    )
+
+    assert 'ultimo_numero' not in formulario.base_fields
+
+
+def test_post_no_admin_nao_regride_ultimo_numero_de_saida(
+    client, superuser, sequencia_de_saida
+):
+    """Regredir `ultimo_numero` colide com `numero_publico` unique no próximo
+    envio — `IntegrityError` (500) em vez de erro tratado."""
+    client.force_login(superuser)
+    numero_original = sequencia_de_saida.ultimo_numero
+
+    client.post(
+        reverse(
+            'admin:estoque_sequenciasaidaexcepcional_change',
+            args=[sequencia_de_saida.pk],
+        ),
+        {'ano': str(sequencia_de_saida.ano), 'ultimo_numero': '0'},
+    )
+
+    sequencia_de_saida.refresh_from_db()
+    assert sequencia_de_saida.ultimo_numero == numero_original
+
+
+# ---------------------------------------------------------------------------
+# ImportacaoSCPIAdmin — apagar libera reimportação do mesmo arquivo (#113)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def importacao_scpi(db, chefe_almoxarifado, estoque_principal):
+    from apps.estoque.models import ImportacaoSCPI
+
+    return ImportacaoSCPI.objects.create(
+        arquivo_nome='scpi_2025.csv',
+        arquivo_hash='a' * 64,
+        importado_por=chefe_almoxarifado,
+        estoque=estoque_principal,
+    )
+
+
+@pytest.fixture
+def staff_de_importacao(db, setor_obras):
+    from apps.estoque.models import ImportacaoSCPI
+
+    usuario = User.objects.create_user(
+        matricula='907',
+        nome='Staff Importacao',
+        password='senha',
+        setor=setor_obras,
+        is_staff=True,
+    )
+    usuario.user_permissions.set(
+        Permission.objects.filter(
+            content_type=ContentType.objects.get_for_model(ImportacaoSCPI),
+        )
+    )
+    return usuario
+
+
+def test_delete_de_importacao_nega(client, staff_de_importacao, importacao_scpi):
+    """Apagar libera reimportação do mesmo arquivo (dedup por `arquivo_hash`)."""
+    client.force_login(staff_de_importacao)
+
+    resposta = client.post(
+        reverse('admin:estoque_importacaoscpi_delete', args=[importacao_scpi.pk]),
+        {'post': 'yes'},
+    )
+
+    from apps.estoque.models import ImportacaoSCPI
+
+    assert resposta.status_code == 403
+    assert ImportacaoSCPI.objects.filter(pk=importacao_scpi.pk).exists()
+
+
+def test_changelist_de_importacao_permanece_legivel(
+    client, staff_de_importacao, importacao_scpi
+):
+    client.force_login(staff_de_importacao)
+
+    resposta = client.get(reverse('admin:estoque_importacaoscpi_changelist'))
+
+    assert resposta.status_code == 200

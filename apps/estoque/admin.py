@@ -185,6 +185,14 @@ class SaidaExcepcionalAdmin(admin.ModelAdmin):
 class SequenciaSaidaExcepcionalAdmin(admin.ModelAdmin):
     list_display = ('ano', 'ultimo_numero')
     ordering = ('-ano',)
+    readonly_fields = ('ultimo_numero',)
+
+    # Linha nasce por `get_or_create` no service na primeira emissão de
+    # número do ano; sem caminho legítimo de add pelo admin. Regredir
+    # `ultimo_numero` à mão colide com `numero_publico` unique no próximo
+    # envio (`IntegrityError` → 500).
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(ImportacaoSCPI)
@@ -201,6 +209,10 @@ class ImportacaoSCPIAdmin(admin.ModelAdmin):
     search_fields = ('arquivo_nome', 'estoque__nome')
     ordering = ('-importado_em',)
     readonly_fields = ('arquivo_hash', 'importado_em')
+
+    # Apagar libera reimportação do mesmo arquivo (dedup por `arquivo_hash`).
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(MovimentacaoEstoque)
