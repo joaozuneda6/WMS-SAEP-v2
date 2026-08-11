@@ -33,8 +33,11 @@ issues #102/#104/#105 — este issue cobre o que sobrou.
     de número do ano; add manual pelo admin não tem caminho legítimo e cai no
     mesmo princípio já aplicado a `SaldoEstoqueAdmin`/`ItemRequisicaoAdmin`
     (criação é sempre do service, não da tela).
-  - `ImportacaoSCPIAdmin`: `has_delete_permission = False` — apagar libera
-    reimportação do mesmo arquivo (dedup por `arquivo_hash`).
+  - `ImportacaoSCPIAdmin`: `has_add_permission`, `has_delete_permission` →
+    `False`. Add não tem caminho legítimo sem CSV/preview por trás; apagar
+    libera reimportação do mesmo arquivo (dedup por `arquivo_hash`). A AC
+    original cobre `has_add_permission` aqui também — perdido numa revisão
+    anterior deste plano, corrigido após rodar os testes contra a AC.
 - `apps/requisicoes/admin.py`
   - `SequenciaRequisicaoAdmin`: mesmo guard de somente-leitura em
     `ultimo_numero`/`ano` + `has_add_permission = False` (mesma razão acima).

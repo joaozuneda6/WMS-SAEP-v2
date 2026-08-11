@@ -632,6 +632,15 @@ def staff_de_importacao(db, setor_obras):
     return usuario
 
 
+def test_add_de_importacao_nega(client, staff_de_importacao):
+    """Importação nasce por `confirmar_importacao_scpi`, não à mão pelo admin."""
+    client.force_login(staff_de_importacao)
+
+    resposta = client.get(reverse('admin:estoque_importacaoscpi_add'))
+
+    assert resposta.status_code == 403
+
+
 def test_delete_de_importacao_nega(client, staff_de_importacao, importacao_scpi):
     """Apagar libera reimportação do mesmo arquivo (dedup por `arquivo_hash`)."""
     client.force_login(staff_de_importacao)

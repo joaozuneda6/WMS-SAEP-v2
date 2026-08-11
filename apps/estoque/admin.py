@@ -210,7 +210,12 @@ class ImportacaoSCPIAdmin(admin.ModelAdmin):
     ordering = ('-importado_em',)
     readonly_fields = ('arquivo_hash', 'importado_em')
 
-    # Apagar libera reimportação do mesmo arquivo (dedup por `arquivo_hash`).
+    # Importação nasce por `confirmar_importacao_scpi`; add manual não tem
+    # caminho legítimo (sem CSV nem preview por trás). Apagar libera
+    # reimportação do mesmo arquivo (dedup por `arquivo_hash`).
+    def has_add_permission(self, request):
+        return False
+
     def has_delete_permission(self, request, obj=None):
         return False
 
