@@ -99,6 +99,14 @@ class ItemRequisicaoAdmin(admin.ModelAdmin):
 class SequenciaRequisicaoAdmin(admin.ModelAdmin):
     list_display = ('ano', 'ultimo_numero')
     ordering = ('-ano',)
+    readonly_fields = ('ultimo_numero',)
+
+    # Linha nasce por `get_or_create` no service na primeira emissão de
+    # número do ano; sem caminho legítimo de add pelo admin. Regredir
+    # `ultimo_numero` à mão colide com `numero_publico` unique no próximo
+    # envio (`IntegrityError` → 500).
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(TimelineRequisicao)

@@ -18,6 +18,7 @@ from apps.requisicoes.admin import (
     ItemRequisicaoAdmin,
     ItemRequisicaoInline,
     RequisicaoAdmin,
+    SequenciaRequisicaoAdmin,
     TimelineRequisicaoAdmin,
 )
 from apps.requisicoes.models import (
@@ -25,6 +26,7 @@ from apps.requisicoes.models import (
     EventoTimeline,
     ItemRequisicao,
     Requisicao,
+    SequenciaRequisicao,
     TimelineRequisicao,
 )
 
@@ -418,3 +420,53 @@ def test_changelist_de_timeline_permanece_legivel(
     resposta = client.get(reverse('admin:requisicoes_timelinerequisicao_changelist'))
 
     assert resposta.status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# SequenciaRequisicaoAdmin — numeração não pode regredir (issue #113)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def sequencia_admin():
+    return SequenciaRequisicaoAdmin(SequenciaRequisicao, AdminSite())
+
+
+@pytest.fixture
+def sequencia_requisicao(db):
+    return SequenciaRequisicao.objects.create(ano=2026, ultimo_numero=10)
+
+
+def test_sequencia_requisicao_admin_nega_add(sequencia_admin, request_de, superuser):
+    assert sequencia_admin.has_add_permission(request_de(superuser)) is False
+
+
+def test_ultimo_numero_de_sequencia_requisicao_declarado_readonly(sequencia_admin):
+    assert 'ultimo_numero' in sequencia_admin.readonly_fields
+
+
+def test_ultimo_numero_de_sequencia_requisicao_fora_do_formulario(
+    sequencia_admin, request_de, superuser, sequencia_requisicao
+):
+    formulario = sequencia_admin.get_form(
+        request_de(superuser), obj=sequencia_requisicao
+    )
+
+    assert 'ultimo_numero' not in formulario.base_fields
+
+
+def test_post_no_admin_nao_regride_ultimo_numero_de_requisicao(
+    client, superuser, sequencia_requisicao
+):
+    client.force_login(superuser)
+
+    client.post(
+        reverse(
+            'admin:requisicoes_sequenciarequisicao_change',
+            args=[sequencia_requisicao.pk],
+        ),
+        {'ano': '2026', 'ultimo_numero': '0'},
+    )
+
+    sequencia_requisicao.refresh_from_db()
+    assert sequencia_requisicao.ultimo_numero == 10
