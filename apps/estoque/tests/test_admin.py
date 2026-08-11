@@ -586,7 +586,7 @@ def test_post_no_admin_nao_regride_ultimo_numero_de_saida(
     client.force_login(superuser)
     numero_original = sequencia_de_saida.ultimo_numero
 
-    client.post(
+    resposta = client.post(
         reverse(
             'admin:estoque_sequenciasaidaexcepcional_change',
             args=[sequencia_de_saida.pk],
@@ -594,6 +594,7 @@ def test_post_no_admin_nao_regride_ultimo_numero_de_saida(
         {'ano': str(sequencia_de_saida.ano), 'ultimo_numero': '0'},
     )
 
+    assert resposta.status_code == 302
     sequencia_de_saida.refresh_from_db()
     assert sequencia_de_saida.ultimo_numero == numero_original
 
@@ -607,7 +608,7 @@ def test_post_no_admin_nao_muda_ano_de_sequencia_saida(
     client.force_login(superuser)
     ano_original = sequencia_de_saida.ano
 
-    client.post(
+    resposta = client.post(
         reverse(
             'admin:estoque_sequenciasaidaexcepcional_change',
             args=[sequencia_de_saida.pk],
@@ -618,6 +619,7 @@ def test_post_no_admin_nao_muda_ano_de_sequencia_saida(
         },
     )
 
+    assert resposta.status_code == 302
     sequencia_de_saida.refresh_from_db()
     assert sequencia_de_saida.ano == ano_original
 

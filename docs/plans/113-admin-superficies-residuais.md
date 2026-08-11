@@ -104,13 +104,20 @@ Por superfície:
   changelist segue 200. `ItemSaidaExcepcionalInline`: guard próprio de
   add/change/delete (não herda do parent — ver "Correção pós-implementação"
   abaixo).
-- **`SequenciaSaidaExcepcionalAdmin` / `SequenciaRequisicaoAdmin`**:
-  `has_add_permission`/`has_delete_permission` → `False`; GET add → 403; POST
-  delete → 403 sem apagar; `readonly_fields` cobre `ultimo_numero` **e
-  `ano`**; `get_form` confirma os dois fora do formulário de change; POST com
-  `ultimo_numero` ou `ano` alterado não muta o valor no banco (trocar `ano`
-  tem o mesmo efeito prático de apagar — achado de review pós-implementação,
-  campo ficou de fora da primeira rodada).
+- **`SequenciaSaidaExcepcionalAdmin` / `SequenciaRequisicaoAdmin`**: contrato
+  de change é **GET 200 / POST 302 sem mutação** — `has_change_permission`
+  não é sobrescrito (fica no default `True`); a proteção é só via
+  `readonly_fields`, que tira `ultimo_numero` **e `ano`** do formulário. Não
+  há caminho de dado (nenhum campo é obrigatório em add, então não há risco
+  de `IntegrityError` como em `RequisicaoAdmin`), então bloquear a view
+  inteira com `has_change_permission = False` seria mais restritivo que o
+  necessário — mesmo padrão de `TimelineRequisicao`/`estado` (readonly, não
+  view fechada). `has_add_permission`/`has_delete_permission` → `False`; GET
+  add → 403; POST delete → 403 sem apagar; `get_form` confirma os dois campos
+  fora do formulário de change; POST com `ultimo_numero` ou `ano` alterado
+  responde 302 mas não muta o valor no banco (trocar `ano` tem o mesmo efeito
+  prático de apagar — achado de review pós-implementação, campo ficou de fora
+  da primeira rodada).
 - **`ImportacaoSCPIAdmin`**: `has_add/change/delete_permission` → `False`;
   GET add → 403; POST change (status/totais/`importado_por`) → 403 sem
   mutar; POST delete → 403 sem apagar; reimportação do mesmo hash seguiria

@@ -462,7 +462,7 @@ def test_post_no_admin_nao_regride_ultimo_numero_de_requisicao(
 ):
     client.force_login(superuser)
 
-    client.post(
+    resposta = client.post(
         reverse(
             'admin:requisicoes_sequenciarequisicao_change',
             args=[sequencia_requisicao.pk],
@@ -470,6 +470,7 @@ def test_post_no_admin_nao_regride_ultimo_numero_de_requisicao(
         {'ano': '2026', 'ultimo_numero': '0'},
     )
 
+    assert resposta.status_code == 302
     sequencia_requisicao.refresh_from_db()
     assert sequencia_requisicao.ultimo_numero == 10
 
@@ -480,7 +481,7 @@ def test_post_no_admin_nao_muda_ano_de_sequencia_requisicao(
     """Trocar `ano` "move" o contador — mesmo efeito prático de apagar."""
     client.force_login(superuser)
 
-    client.post(
+    resposta = client.post(
         reverse(
             'admin:requisicoes_sequenciarequisicao_change',
             args=[sequencia_requisicao.pk],
@@ -488,6 +489,7 @@ def test_post_no_admin_nao_muda_ano_de_sequencia_requisicao(
         {'ano': '2027', 'ultimo_numero': '10'},
     )
 
+    assert resposta.status_code == 302
     sequencia_requisicao.refresh_from_db()
     assert sequencia_requisicao.ano == 2026
 
