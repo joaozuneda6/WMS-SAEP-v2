@@ -1,20 +1,20 @@
 @import "tailwindcss";
-@source not "../../../../*/tests";
-@source not "../../../../../docs";
+@source not "../../apps/*/tests";
+@source not "../../docs";
 /*
   Saída de ferramenta, não código de tela. Sem esta exclusão o build depende de
   quem tem esses arquivos no disco: um relatório que *cita* `min-h-9` como
   violação faz o Tailwind emitir `.min-h-9`, e o `app.css` de quem tem o
   relatório passa a divergir do de quem não tem — que é como o CI pega.
 */
-@source not "../../../../../.impeccable";
+@source not "../../.impeccable";
 /*
   Mesma armadilha, outra ferramenta: as memórias do Serena são versionadas e
   descrevem o front-end em prosa — a de #119 cita `min-h-9`/`min-h-10` ao
   explicar o que o guarda de 44px procura, e o Tailwind emitia as duas classes
   a partir do texto. Nenhum template as usa.
 */
-@source not "../../../../../.serena";
+@source not "../../.serena";
 
 /*
   Design tokens — WMS-SAEP

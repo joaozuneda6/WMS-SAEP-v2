@@ -27,7 +27,7 @@ import pytest
 BASE_DIR = pathlib.Path(__file__).resolve().parents[3]
 TAILWIND_CLI = BASE_DIR / 'node_modules' / '.bin' / 'tailwindcss'
 APPS_DIR = BASE_DIR / 'apps'
-INPUT_CSS = BASE_DIR / 'apps' / 'core' / 'static' / 'core' / 'css' / 'input.css'
+INPUT_CSS = BASE_DIR / 'assets' / 'css' / 'input.css'
 APP_CSS = BASE_DIR / 'apps' / 'core' / 'static' / 'core' / 'css' / 'app.css'
 
 # As 22 famílias de paleta padrão do Tailwind v4 — não só as que já apareceram

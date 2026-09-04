@@ -108,7 +108,7 @@ def test_rotulo_campo_carrega_a_regua_ate_o_campo():
     from pathlib import Path
 
     raiz = Path(__file__).resolve().parents[3]
-    css = (raiz / 'apps/core/static/core/css/input.css').read_text()
+    css = (raiz / 'assets/css/input.css').read_text()
     bloco = css[
         css.index('.rotulo-campo {') : css.index('}', css.index('.rotulo-campo {'))
     ]

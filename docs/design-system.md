@@ -48,7 +48,7 @@ prosa e a medição que as originaram.
 
 ## Tokens
 
-Os tokens vivem em `@theme` de `apps/core/static/core/css/input.css`. As
+Os tokens vivem em `@theme` de `assets/css/input.css`. As
 famílias e o significado de cada shade estão em `DESIGN.md` §Colors; aqui fica só
 o que é operacional.
 

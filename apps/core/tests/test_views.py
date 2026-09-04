@@ -1,11 +1,17 @@
 """Testes de integração para o dispatcher pós-login (apps/core/views.home)."""
 
+import json
+import re
+from pathlib import Path
+
 import pytest
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
+from django.test import override_settings
 from django.urls import reverse
 
 from apps.accounts.models import Setor, SetorClassificacao, VinculoAuxiliar
-from django.contrib.staticfiles.storage import ManifestStaticFilesStorage
 
 
 @pytest.mark.django_db
@@ -205,30 +211,22 @@ class TestPaginasDeErro:
         assert 'app-bar' not in html
 
 
-class TestEstaticosComHash:
-    """`app.css` e os dez arquivos de JS eram servidos sempre na mesma URL.
+class TestEstaticosDoPiloto:
+    """`ManifestStaticFilesStorage` reescreve URLs dentro dos CSS coletados, e
+    a fonte do Tailwind (`@import "tailwindcss"`) não é um caminho de arquivo:
+    enquanto `input.css` morou dentro de `apps/core/static/`, o `collectstatic`
+    do piloto morria com
+    `The file 'core/css/tailwindcss' could not be found`.
 
-    O navegador que já os tinha em cache continuava com a versão antiga depois
-    do deploy, e o defeito que aparecia era o pior tipo: template novo com CSS
-    velho, ou um `x-data` referenciando uma factory Alpine que o JS em cache não
-    registra — `saldoLinha is not defined` no console, com a tela renderizando
-    quase certa. Aconteceu duas vezes durante a própria Etapa 8.
+    A correção (#168) foi tirar a fonte da árvore de estáticos — ela vive em
+    `assets/css/input.css` — em vez de manter um storage customizado só para
+    contornar o post-processamento. O piloto volta a usar o
+    `ManifestStaticFilesStorage` de fábrica.
     """
 
-    def test_o_piloto_usa_storage_com_hash(self):
-        from apps.core.staticfiles import EstaticosComHash
-
-        assert issubclass(EstaticosComHash, ManifestStaticFilesStorage)
-
-    def test_a_configuracao_do_piloto_seleciona_esse_storage(self, monkeypatch):
-        """A herança da classe não prova que o piloto a escolhe.
-
-        Sem esta asserção, apagar `STORAGES` de `config/settings/piloto.py`
-        deixava a suíte verde e o deploy voltava a servir `app.css` e os dez
-        arquivos de JS sempre na mesma URL — que é o defeito inteiro.
-
-        O módulo é importado à parte porque as guardas do piloto recusam o boot
-        sem hosts, origens e Postgres; os valores abaixo só as satisfazem.
+    def test_o_piloto_usa_o_storage_de_fabrica(self, monkeypatch):
+        """O módulo é importado à parte porque as guardas do piloto recusam o
+        boot sem hosts, origens e Postgres; os valores abaixo só as satisfazem.
         """
         import importlib
 
@@ -243,21 +241,45 @@ class TestEstaticosComHash:
 
         assert (
             piloto.STORAGES['staticfiles']['BACKEND']
-            == 'apps.core.staticfiles.EstaticosComHash'
+            == 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
         )
 
-    def test_a_fonte_do_tailwind_fica_fora_da_reescrita(self):
-        """`input.css` começa com `@import "tailwindcss"`, que não é caminho de
-        arquivo: o `collectstatic` morria com
-        `The file 'core/css/tailwindcss' could not be found`. O artefato servido
-        é o `app.css` compilado; a fonte só é coletada porque vive dentro de
-        `static/`, onde o CLI do Tailwind a aponta.
+    def test_nenhum_css_coletavel_e_fonte_do_tailwind(self):
+        """O defeito original não era "`input.css` naquele caminho" — era
+        "qualquer CSS coletado cujo conteúdo começa com `@import "tailwindcss"`",
+        que não é caminho de arquivo e derruba o pós-processamento do manifesto.
+        Varre o conteúdo, não o nome: pega o caso antigo e qualquer app vizinho
+        que reintroduza a mesma armadilha.
         """
-        from apps.core.staticfiles import EstaticosComHash
+        raiz = Path(settings.BASE_DIR)
+        infratores = [
+            str(css.relative_to(raiz))
+            for css in raiz.glob('apps/*/static/**/*.css')
+            if '@import "tailwindcss"' in css.read_text(encoding='utf-8')
+        ]
+        assert infratores == [], (
+            f'Fonte do Tailwind dentro da árvore de estáticos: {infratores}'
+        )
 
-        assert 'core/css/input.css' in EstaticosComHash.NAO_REESCREVER
+    def test_collectstatic_do_piloto_roda_e_da_hash_ao_app_css(self, tmp_path):
+        """O defeito de #168 era um `ValueError` em tempo de `collectstatic`, não
+        uma string de settings errada. Só rodar o comando de verdade prova que o
+        pós-processamento do manifesto atravessa a árvore de estáticos inteira —
+        e junto confirma que o artefato servido (`app.css`) continua ganhando
+        hash, o que justificou o storage customizado que #168 removeu.
+        """
+        with override_settings(
+            STATIC_ROOT=tmp_path,
+            STORAGES={
+                'default': settings.STORAGES['default'],
+                'staticfiles': {
+                    'BACKEND': 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+                },
+            },
+        ):
+            call_command('collectstatic', interactive=False, verbosity=0)
 
-    def test_o_artefato_servido_continua_sendo_reescrito(self):
-        from apps.core.staticfiles import EstaticosComHash
-
-        assert 'core/css/app.css' not in EstaticosComHash.NAO_REESCREVER
+        manifesto = json.loads((tmp_path / 'staticfiles.json').read_text())
+        assert re.fullmatch(
+            r'core/css/app\.[0-9a-f]{12}\.css', manifesto['paths']['core/css/app.css']
+        )

@@ -82,12 +82,15 @@ X_FRAME_OPTIONS = 'DENY'
 # `saldoLinha is not defined` no console e a tela renderizando quase certa —
 # aconteceu duas vezes durante a Etapa 8, em desenvolvimento.
 #
-# `EstaticosComHash` é o `ManifestStaticFilesStorage` menos o
-# pós-processamento da fonte do Tailwind — ver `apps/core/staticfiles.py`.
-# Manifesto e não a variante `Cached`: ele é gerado no `collectstatic` e lido do
+# `ManifestStaticFilesStorage` de fábrica: gerado no `collectstatic` e lido do
 # disco, sem depender de cache em memória por processo. Consequência operacional: `collectstatic` passa a ser obrigatório
 # no deploy, e ele **falha alto** se um template referenciar um estático que
 # não existe — que é o comportamento desejado.
+#
+# `apps/core/static/core/css/input.css` (a fonte do Tailwind) não mora mais
+# nesta árvore — ela vive em `assets/css/input.css`, fora de `STATIC_ROOT` —
+# então não há mais um `@import "tailwindcss"` para o pós-processamento
+# tropeçar, e o backend customizado que existia só para contornar isso saiu.
 #
 # Só no piloto. Em `dev` o servidor de desenvolvimento serve direto da árvore
 # de origem e um manifesto obrigaria a rodar `collectstatic` a cada mudança de
@@ -97,7 +100,7 @@ STORAGES = {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
     },
     'staticfiles': {
-        'BACKEND': 'apps.core.staticfiles.EstaticosComHash',
+        'BACKEND': 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage',
     },
 }
 

@@ -435,11 +435,11 @@ def test_nenhum_template_escreve_campo_na_mao():
 
     assert not infratores, (
         'Campo escrito à mão; use class="campo" (definido em '
-        f'apps/core/static/core/css/input.css): {infratores}'
+        f'assets/css/input.css): {infratores}'
     )
 
 
-_INPUT_CSS = 'apps/core/static/core/css/input.css'
+_INPUT_CSS = 'assets/css/input.css'
 
 _COMENTARIO_CSS = re.compile(r'/\*.*?\*/', re.S)
 # Os blocos são casados de dentro para fora: `[^{}]*` nunca atravessa uma chave,
@@ -1859,7 +1859,7 @@ def test_nenhum_rotulo_de_campo_escrito_a_mao():
 
     assert not infratores, (
         'Rótulo de campo escrito à mão; use class="rotulo-campo" (definido em '
-        f'apps/core/static/core/css/input.css): {infratores}'
+        f'assets/css/input.css): {infratores}'
     )
 
 

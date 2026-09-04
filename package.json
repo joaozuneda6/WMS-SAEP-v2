@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "css:build": "tailwindcss -i apps/core/static/core/css/input.css -o apps/core/static/core/css/app.css --minify",
-    "css:dev": "tailwindcss -i apps/core/static/core/css/input.css -o apps/core/static/core/css/app.css --watch"
+    "css:build": "tailwindcss -i assets/css/input.css -o apps/core/static/core/css/app.css --minify",
+    "css:dev": "tailwindcss -i assets/css/input.css -o apps/core/static/core/css/app.css --watch"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4",
