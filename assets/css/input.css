@@ -91,6 +91,21 @@
   --color-return-text:       var(--color-teal-700);
   --color-return-text-strong: var(--color-teal-900);
 
+  /* cancel = estado cancelada de requisição (era badge.html variant orange) */
+  --color-cancel-muted:      oklch(95.4% 0.038 75.164);
+  --color-cancel-border:     oklch(90.1% 0.076 70.697);
+  --color-cancel-text-strong: oklch(40.8% 0.123 38.172);
+
+  /* consumption = tipo de movimentação "consumo" (era badge.html variant indigo) */
+  --color-consumption-muted:      oklch(93% 0.034 272.788);
+  --color-consumption-border:     oklch(87% 0.065 274.039);
+  --color-consumption-text-strong: oklch(35.9% 0.144 278.697);
+
+  /* reversal = tipo de movimentação "estorno_requisicao" (era badge.html variant violet) */
+  --color-reversal-muted:      oklch(94.3% 0.029 294.588);
+  --color-reversal-border:     oklch(89.4% 0.057 293.283);
+  --color-reversal-text-strong: oklch(38% 0.189 293.745);
+
   /* ─── Superfícies e fundo ──────────────────────────────────────────── */
   --color-surface:           var(--color-white);
   --color-surface-raised:    var(--color-white);

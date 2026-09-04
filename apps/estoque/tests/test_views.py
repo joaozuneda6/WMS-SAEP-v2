@@ -2485,23 +2485,23 @@ class TestHistoricoImportacoesScpiView:
         assert 'Indisponível' in conteudo
         assert 'data-badge-variant="desconhecida:invalido"' in conteudo
 
-    def test_status_orange_colide_mas_gruda_no_fallback(
+    def test_status_cancel_colide_mas_gruda_no_fallback(
         self, client, superuser, estoque_principal
     ):
         from apps.estoque.models import ImportacaoSCPI, StatusImportacaoSCPI
 
         importacao = ImportacaoSCPI.objects.create(
-            arquivo_nome='status-orange.csv',
+            arquivo_nome='status-cancel.csv',
             arquivo_hash='9' * 64,
             importado_por=superuser,
             estoque=estoque_principal,
             status=StatusImportacaoSCPI.CONCLUIDA,
         )
-        ImportacaoSCPI.objects.filter(pk=importacao.pk).update(status='orange')
+        ImportacaoSCPI.objects.filter(pk=importacao.pk).update(status='cancel')
         client.force_login(superuser)
         conteudo = client.get(self.URL).content.decode()
         assert 'Indisponível' in conteudo
-        assert 'bg-orange-100' not in conteudo
+        assert 'bg-cancel-muted' not in conteudo
 
     def test_status_conhecido_mantem_variante_de_hoje(
         self, client, superuser, estoque_principal
@@ -2517,7 +2517,10 @@ class TestHistoricoImportacoesScpiView:
         )
         client.force_login(superuser)
         conteudo = client.get(self.URL).content.decode()
-        assert 'bg-yellow-100' in conteudo
+        # Espaço final: `bg-warning-muted` é prefixo de `bg-warning-muted-strong`
+        # (variante amber-strong do mesmo badge) — sem o espaço o teste passaria
+        # mesmo que a variante trocasse silenciosamente para a mais forte.
+        assert 'bg-warning-muted ' in conteudo
         assert 'Com alertas' in conteudo
 
 

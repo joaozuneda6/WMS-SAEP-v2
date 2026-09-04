@@ -13,32 +13,19 @@ BADGE_TEMPLATE = BASE_DIR / 'apps' / 'core' / 'templates' / 'components' / 'badg
 
 VARIANTE_DESCONHECIDA = 'estado-que-nao-existe'
 
-# Classes de paleta crua que o design system declara como exceção viva para
-# este arquivo (`docs/design-system.md`, regra "Token, nunca shade"): as
-# quatro variantes de catálogo que ainda não têm token semântico. Allowlist
-# por classe exata com contagem, no mesmo rigor de
-# apps/core/tests/test_tokens_semanticos.py — reaproveitar uma classe isenta
-# num ramo novo, ou colar um shade novo da mesma família, quebra o teste.
-CLASSES_DE_CATALOGO_PERMITIDAS = {
-    'bg-orange-100': 1,
-    'text-orange-900': 1,
-    'ring-orange-200': 1,
-    'bg-indigo-100': 1,
-    'text-indigo-900': 1,
-    'ring-indigo-200': 1,
-    'bg-violet-100': 1,
-    'text-violet-900': 1,
-    'ring-violet-200': 1,
-    'bg-yellow-100': 1,
-    'text-yellow-900': 1,
-    'ring-yellow-200': 1,
-}
+# Desde a #177, badge.html não tem mais nenhuma classe de paleta crua — as
+# quatro variantes de catálogo (orange/indigo/violet/yellow) migraram para
+# família de token semântico (cancel/consumption/reversal) ou foram
+# substituídas por reuso direto de `amber`. Allowlist vazia no mesmo rigor de
+# apps/core/tests/test_tokens_semanticos.py — qualquer cor crua nova quebra o
+# teste.
+CLASSES_DE_CATALOGO_PERMITIDAS = {}
 
 CLASSE_DE_PALETA_RE = re.compile(r'(?:bg|text|border|ring|divide)-[a-z]+-\d+')
 
 # Só a cadeia de variantes abre ramo. As condicionais internas de `role`,
 # `aria_label`, `prefixo_sr` e `label` são `{% if %}` também, então contar tag
-# genérica daria muito mais que 15 — e o primeiro `</span>` fecha um filho
+# genérica daria muito mais que 14 — e o primeiro `</span>` fecha um filho
 # `sr-only`, não a raiz. Por isso a fatia é pelos marcadores da cadeia.
 MARCADOR_DE_RAMO_RE = re.compile(r'\{%\s*(?:if|elif)\s+variant\s*==|\{%\s*else\s*%\}')
 
@@ -49,7 +36,7 @@ BLOCO_DE_COMENTARIO_RE = re.compile(
     r'\{%\s*comment\s*%\}.*?\{%\s*endcomment\s*%\}', re.S
 )
 
-TOTAL_DE_RAMOS = 15
+TOTAL_DE_RAMOS = 14
 
 VARIANTES_CONHECIDAS = [
     'slate',
@@ -60,12 +47,11 @@ VARIANTES_CONHECIDAS = [
     'green',
     'red',
     'red-strong',
-    'orange',
+    'cancel',
     'teal',
     'teal-strong',
-    'indigo',
-    'violet',
-    'yellow',
+    'consumption',
+    'reversal',
 ]
 
 
@@ -164,11 +150,27 @@ def _texto_visivel(raiz):
                 'ring-return-border-strong',
             ],
         ),
-        # Fora do mapeamento da issue #86 — permanecem cru de propósito.
-        ('orange', ['bg-orange-100', 'text-orange-900', 'ring-orange-200']),
-        ('indigo', ['bg-indigo-100', 'text-indigo-900', 'ring-indigo-200']),
-        ('violet', ['bg-violet-100', 'text-violet-900', 'ring-violet-200']),
-        ('yellow', ['bg-yellow-100', 'text-yellow-900', 'ring-yellow-200']),
+        # Famílias de token dedicadas (issue #177) — cancel/consumption/reversal.
+        (
+            'cancel',
+            ['bg-cancel-muted', 'text-cancel-text-strong', 'ring-cancel-border'],
+        ),
+        (
+            'consumption',
+            [
+                'bg-consumption-muted',
+                'text-consumption-text-strong',
+                'ring-consumption-border',
+            ],
+        ),
+        (
+            'reversal',
+            [
+                'bg-reversal-muted',
+                'text-reversal-text-strong',
+                'ring-reversal-border',
+            ],
+        ),
     ],
 )
 def test_variant_produz_classes_de_cor_esperadas(variant, classes_esperadas):
@@ -360,7 +362,7 @@ def test_fallback_usa_token_semantico_e_nao_text_white():
     assert 'text-white' not in classes
 
 
-def test_badge_nao_tem_cor_crua_fora_das_quatro_variantes_de_catalogo():
+def test_badge_nao_tem_nenhuma_cor_crua():
     conteudo = BADGE_TEMPLATE.read_text(encoding='utf-8')
     ocorrencias = dict(Counter(CLASSE_DE_PALETA_RE.findall(conteudo)))
     assert ocorrencias == CLASSES_DE_CATALOGO_PERMITIDAS, (
@@ -395,7 +397,7 @@ def test_nenhuma_variante_de_catalogo_contem_dois_pontos():
     )
 
 
-# ─── Guarda de rótulo longo nos 15 ramos (issue #121) ─────────────────────
+# ─── Guarda de rótulo longo nos 14 ramos (issue #121) ─────────────────────
 
 
 def _fatias_por_ramo(conteudo):

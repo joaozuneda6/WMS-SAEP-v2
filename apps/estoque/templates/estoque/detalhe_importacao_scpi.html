@@ -33,7 +33,7 @@
         {% if importacao.status == 'concluida' %}
           {% include "components/badge.html" with variant="green" label="Concluída" prefixo_sr="Estado: " %}
         {% elif importacao.status == 'com_alertas' %}
-          {% include "components/badge.html" with variant="yellow" label="Com alertas" prefixo_sr="Estado: " %}
+          {% include "components/badge.html" with variant="amber" label="Com alertas" prefixo_sr="Estado: " %}
         {% else %}
           {% include "components/badge.html" with variant="desconhecida:"|add:importacao.status label=importacao.get_status_display prefixo_sr="Estado: " %}
         {% endif %}

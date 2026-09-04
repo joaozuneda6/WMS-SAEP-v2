@@ -79,6 +79,51 @@
           "oklch(98.4% 0.014 180.72)"
         ]
       },
+      "cancel": {
+        "role": "tertiary",
+        "displayName": "Laranja de Cancelamento",
+        "canonical": "oklch(64.6% 0.222 41.116)",
+        "tonalRamp": [
+          "oklch(40.8% 0.123 38.172)",
+          "oklch(47% 0.157 37.304)",
+          "oklch(55.3% 0.195 38.402)",
+          "oklch(64.6% 0.222 41.116)",
+          "oklch(70.5% 0.213 47.604)",
+          "oklch(75% 0.183 55.934)",
+          "oklch(83.7% 0.128 66.29)",
+          "oklch(90.1% 0.076 70.697)"
+        ]
+      },
+      "consumption": {
+        "role": "tertiary",
+        "displayName": "Índigo de Consumo",
+        "canonical": "oklch(51.1% 0.262 276.966)",
+        "tonalRamp": [
+          "oklch(35.9% 0.144 278.697)",
+          "oklch(39.8% 0.195 277.366)",
+          "oklch(45.7% 0.24 277.023)",
+          "oklch(51.1% 0.262 276.966)",
+          "oklch(58.5% 0.233 277.117)",
+          "oklch(67.3% 0.182 276.935)",
+          "oklch(78.5% 0.115 274.713)",
+          "oklch(87% 0.065 274.039)"
+        ]
+      },
+      "reversal": {
+        "role": "tertiary",
+        "displayName": "Violeta de Estorno",
+        "canonical": "oklch(54.1% 0.281 293.009)",
+        "tonalRamp": [
+          "oklch(38% 0.189 293.745)",
+          "oklch(43.2% 0.232 292.759)",
+          "oklch(49.1% 0.27 292.581)",
+          "oklch(54.1% 0.281 293.009)",
+          "oklch(60.6% 0.25 292.717)",
+          "oklch(70.2% 0.183 293.541)",
+          "oklch(81.1% 0.111 293.571)",
+          "oklch(89.4% 0.057 293.283)"
+        ]
+      },
       "text-primary": {
         "role": "neutral",
         "displayName": "Grafite de Registro",
@@ -255,7 +300,7 @@
     "overview": "O sistema se comporta como um livro-razão aberto sobre a mesa: linhas, colunas, carimbos de estado e uma trilha que ninguém apaga. Papel branco (surface) flutua sobre papel frio (bg-page), texto em grafite escuro, e a cor entra apenas como carimbo — nunca como enfeite. Densidade e alinhamento valem mais que expressividade; a tela existe para que uma requisição seja lida sem ambiguidade por quem autoriza e por quem separa o material.\n\nA materialidade é Material Design 2 aplicado com parcimônia: uma barra de aplicação azul fixa no topo em elevação 4dp, papéis de conteúdo praticamente planos, e só overlays — menu e modal — subindo para 8dp e 24dp. Não há gradiente, não há vidro fosco, não há sombra colorida. O que dá profundidade é a diferença entre bg-page e surface mais uma borda de 1px, exatamente como uma folha sobre a mesa.\n\nOs controles são diretos e sinalizáveis: cada botão diz o que faz, e quando não pode ser executado ele permanece visível, desabilitado e com o motivo em texto — a interface prefere explicar o bloqueio a esconder a operação. Alvo mínimo de 44px em todo controle, porque a mesma tela é usada com o dedo, em pé no galpão, e com teclado no escritório. O sistema recusa três coisas: o dashboard SaaS de gradiente e glassmorphism, o ERP legado de cinza-sobre-cinza ilegível, e a SPA que finge navegação com transição de página — aqui a página é renderizada no servidor e assume isso.",
     "keyCharacteristics": [
       "Papel frio sobre papel branco, borda de 1px, sombra reservada a overlays",
-      "Cor exclusivamente semântica: seis famílias de estado, zero cor decorativa",
+      "Cor exclusivamente semântica: oito famílias de estado, zero cor decorativa",
       "Corpo em 14px, rótulos estruturais em 12px caixa alta, tipografia do sistema sem webfont",
       "Escala MD2 de elevação com quatro degraus e nada entre eles",
       "Raio que cresce com a superfície: controle 6px → campo 8px → papel 12px → modal 16px",
@@ -275,7 +320,7 @@
       },
       {
         "name": "A Regra do Token, Nunca do Shade",
-        "body": "Templates usam a utility semântica (bg-primary, text-danger-text), nunca a cor crua da paleta (bg-blue-600, text-red-700) nem a custom property direto no HTML. É isso que torna o rebrand da SAEP uma troca de valor em input.css, sem tocar template. A exceção viva é o corpo de badge.html, para as variantes de catálogo cru sem token semântico.",
+        "body": "Templates usam a utility semântica (bg-primary, text-danger-text), nunca a cor crua da paleta (bg-blue-600, text-red-700) nem a custom property direto no HTML. É isso que torna o rebrand da SAEP uma troca de valor em input.css, sem tocar template.",
         "section": "colors"
       },
       {

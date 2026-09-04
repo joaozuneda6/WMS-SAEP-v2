@@ -24,7 +24,7 @@ role, que a spec ARIA não garante que seja anunciado.
 {% elif tipo == 'liberacao' %}
   {% include "components/badge.html" with variant="slate" label=rotulo prefixo_sr="Tipo de movimentação: " %}
 {% elif tipo == 'consumo' %}
-  {% include "components/badge.html" with variant="indigo" label=rotulo prefixo_sr="Tipo de movimentação: " %}
+  {% include "components/badge.html" with variant="consumption" label=rotulo prefixo_sr="Tipo de movimentação: " %}
 {% elif tipo == 'saida_excepcional' %}
   {% include "components/badge.html" with variant="red" label=rotulo prefixo_sr="Tipo de movimentação: " %}
 {% elif tipo == 'estorno_saida' %}
@@ -32,7 +32,7 @@ role, que a spec ARIA não garante que seja anunciado.
 {% elif tipo == 'devolucao' %}
   {% include "components/badge.html" with variant="teal" label=rotulo prefixo_sr="Tipo de movimentação: " %}
 {% elif tipo == 'estorno_requisicao' %}
-  {% include "components/badge.html" with variant="violet" label=rotulo prefixo_sr="Tipo de movimentação: " %}
+  {% include "components/badge.html" with variant="reversal" label=rotulo prefixo_sr="Tipo de movimentação: " %}
 {% else %}
   {% include "components/badge.html" with variant="desconhecida:"|add:tipo label=rotulo prefixo_sr="Tipo de movimentação: " %}
 {% endif %}

@@ -4473,7 +4473,7 @@ def test_badge_cancelada_usa_cor_laranja(client, solicitante, setor_obras):
     _login(client, solicitante)
     response = client.get(reverse('requisicoes:detalhe', kwargs={'pk': req.pk}))
     assert response.status_code == 200
-    assert 'bg-orange-100'.encode() in response.content
+    assert 'bg-cancel-muted'.encode() in response.content
 
 
 @pytest.mark.django_db

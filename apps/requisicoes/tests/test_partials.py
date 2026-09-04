@@ -17,7 +17,7 @@ ESTADOS_CANONICOS = {
     'pronta_para_retirada': 'blue-strong',
     'atendida': 'green',
     'recusada': 'red-strong',
-    'cancelada': 'orange',
+    'cancelada': 'cancel',
     'estornada': 'teal-strong',
 }
 
@@ -43,11 +43,11 @@ def test_estado_inexistente_emite_data_badge_variant_prefixado():
     assert 'data-badge-variant="desconhecida:estado-que-nao-existe"' in html
 
 
-def test_estado_orange_colide_com_variante_de_catalogo_mas_gruda_no_fallback():
-    """`orange` é nome de variante do badge.html — a colisão precisa ser impossível."""
-    html = _render('orange')
+def test_estado_cancel_colide_com_variante_de_catalogo_mas_gruda_no_fallback():
+    """`cancel` é nome de variante do badge.html — a colisão precisa ser impossível."""
+    html = _render('cancel')
     assert 'Indisponível' in html
-    assert 'bg-orange-100' not in html
+    assert 'bg-cancel-muted' not in html
 
 
 def test_estado_inexistente_preserva_rotulo_real_em_sr_only():
@@ -65,7 +65,7 @@ def test_estado_canonico_mantem_variante_de_hoje(estado, variant_esperada):
         'blue-strong': 'bg-primary-muted-strong',
         'green': 'bg-success-muted',
         'red-strong': 'bg-danger-muted-strong',
-        'orange': 'bg-orange-100',
+        'cancel': 'bg-cancel-muted',
         'teal-strong': 'bg-return-muted-strong',
     }[variant_esperada]
     assert marcadores in html

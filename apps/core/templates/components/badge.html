@@ -4,8 +4,8 @@ Partials de domínio (ex. _estado_badge.html) mapeiam estado -> variant/label/ro
 
 Parâmetros:
   variant     (obrigatório) slate, blue, blue-strong, amber, amber-strong,
-              green, red, red-strong, orange, teal, teal-strong, indigo,
-              violet, yellow.
+              green, red, red-strong, cancel, teal, teal-strong, consumption,
+              reversal.
               Não pode conter `:` — esse caractere é delimitador reservado do
               namespace `desconhecida:<valor>` usado por partial de domínio
               para repassar um valor não mapeado ao fallback (ver
@@ -42,7 +42,7 @@ Variante desconhecida (ramo {% else %}):
   chamador.
 
 Guarda de rótulo longo:
-  Os 15 ramos limitam o pill a `max-w-48` (12rem) e embrulham o texto visível
+  Os 14 ramos limitam o pill a `max-w-48` (12rem) e embrulham o texto visível
   num <span class="min-w-0 break-words">. Rótulo comprido quebra em duas linhas
   dentro do pill em vez de estourar o cartão de listagem — e nada é truncado,
   porque este componente não descarta dado. O `min-w-0` é obrigatório: em
@@ -68,18 +68,16 @@ Uso:
   <span{% if role %} role="{{ role }}"{% endif %}{% if aria_label %} aria-label="{{ aria_label }}"{% endif %} class="inline-flex max-w-48 items-center rounded-full bg-danger-muted px-2.5 py-0.5 text-xs font-semibold text-danger-text-strong ring-1 ring-inset ring-danger-border">{% if prefixo_sr %}<span class="sr-only">{{ prefixo_sr }}</span>{% endif %}<span class="min-w-0 break-words">{{ label }}</span></span>
 {% elif variant == 'red-strong' %}
   <span{% if role %} role="{{ role }}"{% endif %}{% if aria_label %} aria-label="{{ aria_label }}"{% endif %} class="inline-flex max-w-48 items-center rounded-full bg-danger-muted-strong px-2.5 py-0.5 text-xs font-semibold text-danger-text-strong ring-1 ring-inset ring-danger-border-strong">{% if prefixo_sr %}<span class="sr-only">{{ prefixo_sr }}</span>{% endif %}<span class="min-w-0 break-words">{{ label }}</span></span>
-{% elif variant == 'orange' %}
-  <span{% if role %} role="{{ role }}"{% endif %}{% if aria_label %} aria-label="{{ aria_label }}"{% endif %} class="inline-flex max-w-48 items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-semibold text-orange-900 ring-1 ring-inset ring-orange-200">{% if prefixo_sr %}<span class="sr-only">{{ prefixo_sr }}</span>{% endif %}<span class="min-w-0 break-words">{{ label }}</span></span>
+{% elif variant == 'cancel' %}
+  <span{% if role %} role="{{ role }}"{% endif %}{% if aria_label %} aria-label="{{ aria_label }}"{% endif %} class="inline-flex max-w-48 items-center rounded-full bg-cancel-muted px-2.5 py-0.5 text-xs font-semibold text-cancel-text-strong ring-1 ring-inset ring-cancel-border">{% if prefixo_sr %}<span class="sr-only">{{ prefixo_sr }}</span>{% endif %}<span class="min-w-0 break-words">{{ label }}</span></span>
 {% elif variant == 'teal' %}
   <span{% if role %} role="{{ role }}"{% endif %}{% if aria_label %} aria-label="{{ aria_label }}"{% endif %} class="inline-flex max-w-48 items-center rounded-full bg-return-muted px-2.5 py-0.5 text-xs font-semibold text-return-text-strong ring-1 ring-inset ring-return-border">{% if prefixo_sr %}<span class="sr-only">{{ prefixo_sr }}</span>{% endif %}<span class="min-w-0 break-words">{{ label }}</span></span>
 {% elif variant == 'teal-strong' %}
   <span{% if role %} role="{{ role }}"{% endif %}{% if aria_label %} aria-label="{{ aria_label }}"{% endif %} class="inline-flex max-w-48 items-center rounded-full bg-return-muted-strong px-2.5 py-0.5 text-xs font-semibold text-return-text-strong ring-1 ring-inset ring-return-border-strong">{% if prefixo_sr %}<span class="sr-only">{{ prefixo_sr }}</span>{% endif %}<span class="min-w-0 break-words">{{ label }}</span></span>
-{% elif variant == 'indigo' %}
-  <span{% if role %} role="{{ role }}"{% endif %}{% if aria_label %} aria-label="{{ aria_label }}"{% endif %} class="inline-flex max-w-48 items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-900 ring-1 ring-inset ring-indigo-200">{% if prefixo_sr %}<span class="sr-only">{{ prefixo_sr }}</span>{% endif %}<span class="min-w-0 break-words">{{ label }}</span></span>
-{% elif variant == 'violet' %}
-  <span{% if role %} role="{{ role }}"{% endif %}{% if aria_label %} aria-label="{{ aria_label }}"{% endif %} class="inline-flex max-w-48 items-center rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-900 ring-1 ring-inset ring-violet-200">{% if prefixo_sr %}<span class="sr-only">{{ prefixo_sr }}</span>{% endif %}<span class="min-w-0 break-words">{{ label }}</span></span>
-{% elif variant == 'yellow' %}
-  <span{% if role %} role="{{ role }}"{% endif %}{% if aria_label %} aria-label="{{ aria_label }}"{% endif %} class="inline-flex max-w-48 items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-semibold text-yellow-900 ring-1 ring-inset ring-yellow-200">{% if prefixo_sr %}<span class="sr-only">{{ prefixo_sr }}</span>{% endif %}<span class="min-w-0 break-words">{{ label }}</span></span>
+{% elif variant == 'consumption' %}
+  <span{% if role %} role="{{ role }}"{% endif %}{% if aria_label %} aria-label="{{ aria_label }}"{% endif %} class="inline-flex max-w-48 items-center rounded-full bg-consumption-muted px-2.5 py-0.5 text-xs font-semibold text-consumption-text-strong ring-1 ring-inset ring-consumption-border">{% if prefixo_sr %}<span class="sr-only">{{ prefixo_sr }}</span>{% endif %}<span class="min-w-0 break-words">{{ label }}</span></span>
+{% elif variant == 'reversal' %}
+  <span{% if role %} role="{{ role }}"{% endif %}{% if aria_label %} aria-label="{{ aria_label }}"{% endif %} class="inline-flex max-w-48 items-center rounded-full bg-reversal-muted px-2.5 py-0.5 text-xs font-semibold text-reversal-text-strong ring-1 ring-inset ring-reversal-border">{% if prefixo_sr %}<span class="sr-only">{{ prefixo_sr }}</span>{% endif %}<span class="min-w-0 break-words">{{ label }}</span></span>
 {% else %}
   <span role="alert" data-badge-variant="{{ variant }}" class="inline-flex max-w-48 items-center rounded-full bg-danger px-2.5 py-0.5 text-xs font-semibold text-text-on-primary ring-1 ring-inset ring-danger-hover">{% if prefixo_sr %}<span class="sr-only">{{ prefixo_sr }}</span>{% endif %}<span class="min-w-0 break-words">Indisponível</span>{% if label %}<span class="sr-only"> ({{ label }})</span>{% endif %}</span>
 {% endif %}

@@ -50,6 +50,15 @@ colors:
   return-border-strong: "oklch(85.5% 0.138 181.071)"
   return-text: "oklch(51.1% 0.096 186.391)"
   return-text-strong: "oklch(38.6% 0.063 188.416)"
+  cancel-muted: "oklch(95.4% 0.038 75.164)"
+  cancel-border: "oklch(90.1% 0.076 70.697)"
+  cancel-text-strong: "oklch(40.8% 0.123 38.172)"
+  consumption-muted: "oklch(93% 0.034 272.788)"
+  consumption-border: "oklch(87% 0.065 274.039)"
+  consumption-text-strong: "oklch(35.9% 0.144 278.697)"
+  reversal-muted: "oklch(94.3% 0.029 294.588)"
+  reversal-border: "oklch(89.4% 0.057 293.283)"
+  reversal-text-strong: "oklch(38% 0.189 293.745)"
   surface: "#fff"
   bg-page: "oklch(98.4% 0.003 247.858)"
   bg-subtle: "oklch(96.8% 0.007 247.896)"
@@ -202,7 +211,7 @@ Os controles são diretos e sinalizáveis: cada botão diz o que faz, e quando n
 
 **Key Characteristics:**
 - Papel frio sobre papel branco, borda de 1px, sombra reservada a overlays
-- Cor exclusivamente semântica: seis famílias de estado, zero cor decorativa
+- Cor exclusivamente semântica: oito famílias de estado, zero cor decorativa
 - Corpo em 14px, rótulos estruturais impressos uma vez em 12px caixa alta (rótulo repetido por registro fica inline em caixa normal), tipografia do sistema sem webfont
 - Escala MD2 de elevação com quatro degraus e nada entre eles
 - Raio que cresce com a superfície: controle 6px → campo 8px → papel 12px → modal 16px
@@ -211,7 +220,7 @@ Os controles são diretos e sinalizáveis: cada botão diz o que faz, e quando n
 
 ## Colors
 
-Uma paleta de trabalho: um azul de carimbo, um grafite de registro, um papel frio e cinco famílias semânticas que existem só para dizer em que estado a coisa está.
+Uma paleta de trabalho: um azul de carimbo, um grafite de registro, um papel frio e oito famílias semânticas que existem só para dizer em que estado a coisa está.
 
 ### Primary
 - **Azul de Carimbo** (`{colors.primary}`, blue-600): a única cor de ação do sistema. Fundo de botão primário, barra de aplicação, avatar do usuário, ícone de item ativo na navegação e anel de foco (em blue-500, um degrau mais claro). Nunca aparece como fundo de área grande fora da barra de aplicação.
@@ -225,7 +234,11 @@ Uma paleta de trabalho: um azul de carimbo, um grafite de registro, um papel fri
 
 ### Tertiary
 - **Teal de Reversão** (`{colors.return}`, teal-600): devolução e reversão operacional. Existe precisamente para não usar vermelho num evento legítimo.
-- **Cores de catálogo cru** (orange-100/900, indigo-100/900, violet-100/900, yellow-100/900): usadas só nas variantes de badge homônimas de `components/badge.html`, para diferenciar estados de domínio que já esgotaram as famílias semânticas. Não são tokens de tema e não devem vazar para fora de badge.
+- **Laranja de Cancelamento** (`{colors.cancel-muted}` / `{colors.cancel-text-strong}`, orange-100/900): estado "cancelada" de requisição, variante `cancel` de `components/badge.html` em `_estado_badge.html`.
+- **Índigo de Consumo** (`{colors.consumption-muted}` / `{colors.consumption-text-strong}`, indigo-100/900): tipo de movimentação "consumo", variante `consumption` de `components/badge.html` em `_badge_tipo_movimentacao.html`.
+- **Violeta de Estorno** (`{colors.reversal-muted}` / `{colors.reversal-text-strong}`, violet-100/900): tipo de movimentação "estorno_requisicao", variante `reversal` de `components/badge.html`, mesmo partial.
+
+Contraste medido text-strong sobre muted: 8,21:1 (`cancel`), 9,31:1 (`consumption`) e 9,28:1 (`reversal`) — todos acima do piso 4,5:1 da Regra do Cinza Medido.
 
 ### Neutral
 - **Grafite de Registro** (`{colors.text-primary}`, slate-900): todo texto de conteúdo e todo título.
@@ -270,7 +283,7 @@ primeira medição desta regra não a cobria. O cinza de metadado reprova nas
 `text-disabled` (slate-400, 2,63:1 no branco) não carrega informação em nenhuma
 superfície: serve a ícone decorativo e a separador, nunca a texto.
 
-**A Regra do Token, Nunca do Shade.** Templates usam a utility semântica (`bg-primary`, `text-danger-text`), nunca a cor crua da paleta (`bg-blue-600`, `text-red-700`) nem a custom property direto no HTML. É isso que torna o rebrand da SAEP uma troca de valor em `input.css`, sem tocar template. A exceção viva é o corpo de `badge.html`, para as variantes de catálogo cru sem token semântico.
+**A Regra do Token, Nunca do Shade.** Templates usam a utility semântica (`bg-primary`, `text-danger-text`), nunca a cor crua da paleta (`bg-blue-600`, `text-red-700`) nem a custom property direto no HTML. É isso que torna o rebrand da SAEP uma troca de valor em `input.css`, sem tocar template.
 
 > Nota factual: a família `--color-info*` (slate) está declarada em `input.css` mas nenhum template a consome — logo não existe no `app.css` compilado. A variante `info` de `alert.html` e o nível padrão de `_messages.html` renderizam azul via `primary-*`, por decisão. Use `info-*` só quando precisar de um aviso realmente neutro, e recompile.
 

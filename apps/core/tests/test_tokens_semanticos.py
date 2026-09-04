@@ -4,9 +4,8 @@ Garante o que os critérios de aceite das duas issues pedem como "busca
 automatizável":
 
 1. Nenhuma classe de cor de paleta crua do Tailwind (qualquer uma das 22
-   famílias padrão) aparece em `apps/**/*.html`, exceto nas duas exceções
-   declaradas em `docs/design-system.md` ("Token, nunca shade"): as quatro
-   variantes de catálogo de `components/badge.html` e o backdrop de
+   famílias padrão) aparece em `apps/**/*.html`, exceto na exceção
+   declarada em `docs/design-system.md` ("Token, nunca shade"): o backdrop de
    `components/modal.html`. A exceção é por **classe exata com contagem**
    (Decisão B da issue #122) — não por família nem por arquivo inteiro, para
    que reaproveitar uma classe já isenta num ramo novo, ou colar um shade
@@ -101,22 +100,6 @@ def _classe_sem_opacidade(classe):
 # abaixo), não de continência: reaproveitar uma classe isenta em ramo novo, um
 # shade novo da mesma família, ou uma classe sumir do arquivo — tudo quebra.
 ALLOWLIST_COR_CRUA = {
-    'core/templates/components/badge.html': {
-        # As quatro variantes de catálogo do design system — cor de marca sem
-        # token semântico, uma ocorrência de cada classe por variante.
-        'bg-orange-100': 1,
-        'text-orange-900': 1,
-        'ring-orange-200': 1,
-        'bg-indigo-100': 1,
-        'text-indigo-900': 1,
-        'ring-indigo-200': 1,
-        'bg-violet-100': 1,
-        'text-violet-900': 1,
-        'ring-violet-200': 1,
-        'bg-yellow-100': 1,
-        'text-yellow-900': 1,
-        'ring-yellow-200': 1,
-    },
     'core/templates/components/modal.html': {
         # O backdrop do modal — segunda exceção declarada na mesma linha do
         # design system.
@@ -146,6 +129,15 @@ TOKENS_NOVOS = [
     '--color-return-muted-strong',
     '--color-return-border-strong',
     '--color-return-text-strong',
+    '--color-cancel-muted',
+    '--color-cancel-border',
+    '--color-cancel-text-strong',
+    '--color-consumption-muted',
+    '--color-consumption-border',
+    '--color-consumption-text-strong',
+    '--color-reversal-muted',
+    '--color-reversal-border',
+    '--color-reversal-text-strong',
 ]
 
 # Amostra de utilities consumidas pelos templates que precisam ter sido
@@ -172,6 +164,15 @@ UTILITIES_ESPERADAS = [
     # precisam existir no build, e é por isso que as duas estão nesta lista.
     'focus:ring-danger-accent',
     'bg-warning-subtle',
+    'bg-cancel-muted',
+    'text-cancel-text-strong',
+    'ring-cancel-border',
+    'bg-consumption-muted',
+    'text-consumption-text-strong',
+    'ring-consumption-border',
+    'bg-reversal-muted',
+    'text-reversal-text-strong',
+    'ring-reversal-border',
 ]
 
 # Tokens declarados no @theme mas sem consumidor real em nenhum template
@@ -234,7 +235,6 @@ def test_cor_crua_de_marca_bate_exatamente_com_a_allowlist(arquivo):
 # provar que o guard morde: o próprio teste viraria o vazamento que deveria
 # pegar.
 
-CHAVE_BADGE = 'core/templates/components/badge.html'
 CHAVE_MODAL = 'core/templates/components/modal.html'
 
 
@@ -249,19 +249,23 @@ def test_entrada_sintetica_familia_nova_em_arquivo_nao_isento_e_reprovada():
     )
 
 
-def test_entrada_sintetica_familia_nova_dentro_do_badge_e_reprovada():
-    conteudo = _conteudo_real(CHAVE_BADGE) + '<span class="bg-lime-100"></span>'
-    assert not _bate_com_allowlist(CHAVE_BADGE, conteudo)
+def test_entrada_sintetica_familia_nova_dentro_do_modal_e_reprovada():
+    """`badge.html` graduou da allowlist na #177 — não sobra nenhuma classe
+    isenta lá pra este caso (família nova dentro de arquivo isento) exercitar.
+    O `modal.html` é a única exceção viva restante."""
+    conteudo = _conteudo_real(CHAVE_MODAL) + '<span class="bg-lime-100"></span>'
+    assert not _bate_com_allowlist(CHAVE_MODAL, conteudo)
 
 
-def test_entrada_sintetica_classe_isenta_reusada_no_badge_e_reprovada():
-    conteudo = _conteudo_real(CHAVE_BADGE) + '<span class="bg-orange-100"></span>'
-    assert not _bate_com_allowlist(CHAVE_BADGE, conteudo)
+def test_entrada_sintetica_classe_isenta_reusada_no_modal_e_reprovada():
+    conteudo = _conteudo_real(CHAVE_MODAL) + '<span class="bg-slate-900"></span>'
+    assert not _bate_com_allowlist(CHAVE_MODAL, conteudo)
 
 
-def test_entrada_sintetica_shade_novo_de_familia_isenta_no_badge_e_reprovada():
-    conteudo = _conteudo_real(CHAVE_BADGE) + '<span class="bg-orange-50"></span>'
-    assert not _bate_com_allowlist(CHAVE_BADGE, conteudo)
+# Shade novo da mesma família isenta (bg-slate-800 dentro do modal) já é
+# coberto por test_entrada_sintetica_classe_errada_no_modal_e_reprovada logo
+# abaixo — badge.html perdeu a última classe isenta na #177 e não sobrou uma
+# segunda exceção para exercitar esse caso sem duplicar o teste existente.
 
 
 def test_entrada_sintetica_classe_errada_no_modal_e_reprovada():
@@ -269,9 +273,9 @@ def test_entrada_sintetica_classe_errada_no_modal_e_reprovada():
     assert not _bate_com_allowlist(CHAVE_MODAL, conteudo)
 
 
-def test_entrada_sintetica_classe_faltante_no_badge_e_reprovada():
-    conteudo = _conteudo_real(CHAVE_BADGE).replace('bg-orange-100', '', 1)
-    assert not _bate_com_allowlist(CHAVE_BADGE, conteudo)
+def test_entrada_sintetica_classe_faltante_no_modal_e_reprovada():
+    conteudo = _conteudo_real(CHAVE_MODAL).replace('bg-slate-900', '', 1)
+    assert not _bate_com_allowlist(CHAVE_MODAL, conteudo)
 
 
 @pytest.mark.parametrize(

@@ -18,11 +18,11 @@ from django.template.loader import render_to_string
 TIPOS_CANONICOS = {
     'reserva': 'blue',
     'liberacao': 'slate',
-    'consumo': 'indigo',
+    'consumo': 'consumption',
     'saida_excepcional': 'red',
     'estorno_saida': 'amber',
     'devolucao': 'teal',
-    'estorno_requisicao': 'violet',
+    'estorno_requisicao': 'reversal',
 }
 
 
@@ -62,10 +62,10 @@ def test_tipo_inexistente_emite_data_badge_variant_prefixado():
     assert 'data-badge-variant="desconhecida:tipo-que-nao-existe"' in html
 
 
-def test_tipo_orange_colide_mas_gruda_no_fallback():
-    html = _render_tipo_movimentacao('orange')
+def test_tipo_cancel_colide_mas_gruda_no_fallback():
+    html = _render_tipo_movimentacao('cancel')
     assert 'Indisponível' in html
-    assert 'bg-orange-100' not in html
+    assert 'bg-cancel-muted' not in html
 
 
 def test_tipo_inexistente_preserva_rotulo_real():
@@ -91,11 +91,11 @@ def test_tipo_canonico_mantem_variante_de_hoje(tipo, variant_esperada):
     marcadores = {
         'blue': 'bg-primary-muted ',
         'slate': 'bg-bg-subtle',
-        'indigo': 'bg-indigo-100',
+        'consumption': 'bg-consumption-muted',
         'red': 'bg-danger-muted ',
         'amber': 'bg-warning-muted ',
         'teal': 'bg-return-muted',
-        'violet': 'bg-violet-100',
+        'reversal': 'bg-reversal-muted',
     }[variant_esperada]
     assert marcadores in html
     # `prefixo_sr` e não `aria-label`+`role="status"`: badge de dado estático não
@@ -120,10 +120,10 @@ def test_saida_inexistente_emite_data_badge_variant_prefixado():
     assert 'data-badge-variant="desconhecida:estado-que-nao-existe"' in html
 
 
-def test_saida_orange_colide_mas_gruda_no_fallback():
-    html = _render_saida('orange')
+def test_saida_cancel_colide_mas_gruda_no_fallback():
+    html = _render_saida('cancel')
     assert 'Indisponível' in html
-    assert 'bg-orange-100' not in html
+    assert 'bg-cancel-muted' not in html
 
 
 def test_saida_inexistente_nao_emite_aria_label():
