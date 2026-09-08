@@ -8,7 +8,7 @@ sem discordar dela (issue #183).
 """
 
 import pytest
-from django.db import OperationalError
+from django.db import InterfaceError, OperationalError, ProgrammingError
 from django.test import RequestFactory
 
 from apps.notificacoes import context_processors
@@ -24,16 +24,29 @@ def request_de(chefe_obras):
 
 
 @pytest.mark.django_db
-def test_falha_de_banco_nao_finge_fila_vazia(monkeypatch, request_de):
-    """Indisponibilidade do banco vira ``None``, nunca zero.
+@pytest.mark.parametrize(
+    'excecao',
+    [OperationalError('banco fora do ar'), InterfaceError('conexão inutilizável')],
+    ids=['banco-fora-do-ar', 'conexao-inutilizavel'],
+)
+def test_indisponibilidade_do_banco_nao_finge_fila_vazia(
+    monkeypatch, request_de, excecao
+):
+    """Indisponibilidade vira ``None``, nunca zero.
 
     Zero mente: afirma que o destinatário não tem nada a fazer. ``None`` diz
     "não sei", e o template omite o badge em vez de desenhar uma fila vazia
     que ninguém apurou.
+
+    As duas classes toleradas são as de indisponibilidade — banco fora do ar e
+    conexão inutilizável. Elas não têm base comum útil: ``InterfaceError`` herda
+    direto de ``django.db.Error``, e ``OperationalError`` desce por
+    ``DatabaseError``. Capturar a base para pegar as duas de uma vez arrastaria
+    junto o que o teste abaixo trava.
     """
 
     def indisponivel(_destinatario_id):
-        raise OperationalError('conexão perdida')
+        raise excecao
 
     monkeypatch.setattr(
         context_processors, 'contagem_de_notificacoes_pendentes', indisponivel
@@ -43,7 +56,15 @@ def test_falha_de_banco_nao_finge_fila_vazia(monkeypatch, request_de):
 
 
 @pytest.mark.django_db
-def test_defeito_de_codigo_propaga(monkeypatch, request_de):
+@pytest.mark.parametrize(
+    'excecao',
+    [
+        AttributeError('atributo que sumiu'),
+        ProgrammingError('column "foo" does not exist'),
+    ],
+    ids=['defeito-de-codigo', 'regressao-de-query'],
+)
+def test_defeito_de_codigo_ou_de_schema_propaga(monkeypatch, request_de, excecao):
     """Bug no seletor derruba a página, como já derruba no vizinho.
 
     ``flags_de_papel`` (requisições) roda ``papel_efetivo`` sem defesa alguma e
@@ -51,16 +72,22 @@ def test_defeito_de_codigo_propaga(monkeypatch, request_de):
     código que quebrasse a resolução de papel já derrubaria a página ali. Engolir
     a mesma classe de erro aqui não protegeria requisição nenhuma — só trocaria
     o sintoma por silêncio.
+
+    ``ProgrammingError`` está aqui, e não entre os tolerados, porque é o **campo
+    renomeado** e a **regressão de query** que a #183 nomeia como o que precisa
+    ficar visível. Ele é um ``django.db.Error``, então capturar a base comum
+    devolveria o silêncio por uma fresta menor: este teste é o que impede essa
+    volta.
     """
 
     def regressao(_destinatario_id):
-        raise AttributeError('campo renomeado')
+        raise excecao
 
     monkeypatch.setattr(
         context_processors, 'contagem_de_notificacoes_pendentes', regressao
     )
 
-    with pytest.raises(AttributeError):
+    with pytest.raises(type(excecao)):
         notificacoes_ctx(request_de)
 
 

@@ -1,6 +1,6 @@
 """Context processors de notificações."""
 
-from django.db import Error
+from django.db import InterfaceError, OperationalError
 
 from apps.notificacoes.selectors import contagem_de_notificacoes_pendentes
 
@@ -24,16 +24,21 @@ def notificacoes_ctx(request):
         return {'notificacoes_pendentes': 0}
     try:
         count = contagem_de_notificacoes_pendentes(usuario.pk)
-    except Error:
+    except (OperationalError, InterfaceError):
         # Zero mentiria: é indistinguível de "nada pendente", e um sino que
         # afirma fila vazia sem ter apurado desfaz por outro caminho a garantia
         # da #175 — pior de diagnosticar, porque não há sintoma. `None` diz
         # "não sei", e os dois `{% if %}` de `base_auth.html` (sufixo do
         # aria-label e badge) já o tratam como ausência de contagem.
         #
-        # Só indisponibilidade do banco é tolerada — `django.db.Error` é a base
-        # de `OperationalError`, `InterfaceError` e `ProgrammingError`. Defeito
-        # de código propaga, como já propaga em
+        # Só INDISPONIBILIDADE é tolerada: banco fora do ar (`OperationalError`)
+        # e conexão inutilizável (`InterfaceError`). Não vale `django.db.Error`,
+        # que é a base comum e arrastaria junto `ProgrammingError`, `DataError`
+        # e `IntegrityError` — defeitos de schema e de query, exatamente o
+        # "campo renomeado" e a "regressão de query" que a #183 existe para
+        # tornar visíveis. Tolerá-los devolveria o silêncio por uma fresta menor.
+        #
+        # Defeito de código propaga, como já propaga em
         # `requisicoes.context_processors.flags_de_papel`, que roda
         # `papel_efetivo` sem defesa e está registrado ANTES deste em TEMPLATES:
         # engolir a mesma classe de erro aqui não salvaria requisição nenhuma,
