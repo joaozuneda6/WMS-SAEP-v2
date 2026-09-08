@@ -1,5 +1,7 @@
 """Context processors de notificações."""
 
+from django.db import Error
+
 from apps.notificacoes.selectors import contagem_de_notificacoes_pendentes
 
 
@@ -22,6 +24,19 @@ def notificacoes_ctx(request):
         return {'notificacoes_pendentes': 0}
     try:
         count = contagem_de_notificacoes_pendentes(usuario.pk)
-    except Exception:
-        count = 0
+    except Error:
+        # Zero mentiria: é indistinguível de "nada pendente", e um sino que
+        # afirma fila vazia sem ter apurado desfaz por outro caminho a garantia
+        # da #175 — pior de diagnosticar, porque não há sintoma. `None` diz
+        # "não sei", e os dois `{% if %}` de `base_auth.html` (sufixo do
+        # aria-label e badge) já o tratam como ausência de contagem.
+        #
+        # Só indisponibilidade do banco é tolerada — `django.db.Error` é a base
+        # de `OperationalError`, `InterfaceError` e `ProgrammingError`. Defeito
+        # de código propaga, como já propaga em
+        # `requisicoes.context_processors.flags_de_papel`, que roda
+        # `papel_efetivo` sem defesa e está registrado ANTES deste em TEMPLATES:
+        # engolir a mesma classe de erro aqui não salvaria requisição nenhuma,
+        # só trocaria o sintoma por silêncio.
+        count = None
     return {'notificacoes_pendentes': count}
