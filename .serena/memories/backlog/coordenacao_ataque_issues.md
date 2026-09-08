@@ -2,7 +2,7 @@
 
 **Documento vivo.** Ponto de partida para quem entra no backlog e ferramenta de acompanhamento para quem já está nele. Visão macro: o detalhe técnico vive na issue, aqui vive a **ordem, a dependência e o estado**.
 
-Última atualização: **2026-09-08** (ondas 4 e 5 atacadas em bloco: **#167, #178, #181 e #182 estão em PR aberta**, aguardando review e merge. Nenhuma mergeada ainda. Gerou a #183. A próxima da fila depois do merge é a **#173**, que precisa ser fatiada antes de virar trabalho).
+Última atualização: **2026-09-08, segunda passada** (ondas 4 e 5 **fechadas**: as PRs `joaozuneda6#70`, `#71`, `#72` e `#73` mergearam e as issues #167, #178, #181 e #182 foram fechadas manualmente — o fechamento que os corpos das PRs prometiam não tinha acontecido. A #183 está em PR (`joaozuneda6#75`). A #173 foi fatiada em **quatro**, não três: #184, #185, #186 e #187; a #187 vai na frente por ser bug de comportamento, não achado estético).
 
 ## Como usar
 
@@ -38,14 +38,22 @@ Snapshots em `.impeccable/critique/` (diretório local, gitignored). O plano de 
 | — | `quantidade.html`: contraste da unidade + `tom` não propagava pra `referencia` | PR `joaozuneda6/WMS-SAEP-v2#68`, merge `421ce15`, merged 2026-09-04. Sem issue própria. |
 | 166 | Varredura de contraste na lane Navegador (par pai/filho) | PR `joaozuneda6/WMS-SAEP-v2#69`, merge `95e8018`, merged 2026-09-04. Issue fechada. Emendou a ADR-0019: 4º critério de admissão ("cascade resolvida e pipeline de cor") e o gatilho de "~15 casos" deu lugar ao relógio. Deixa pendente uma extensão: `estoque:preview_importacao_scpi` ficou fora (upload multipart), então o guarda nasce cego para o `bg-primary-subtle` que originou o eixo. |
 
-**Em andamento — 4 PRs abertas, nenhuma mergeada**
+**Ondas 4 e 5 — mergeadas e fechadas em 2026-09-08**
+
+| # | PR | Merge | O que entregou |
+|---|---|---|---|
+| 182 | `joaozuneda6#70` | `9e52881` | `listar_saidas_excepcionais` perdeu o `ator_id` morto. Levou nota normativa ao `CONVENTIONS.md`: `ator_id` em selector é reservado ao sufixo `_visiveis_para`. |
+| 167 | `joaozuneda6#71` | `43b6dee` | Legenda do preview SCPI **removida**, não corrigida — ver decisão abaixo. |
+| 178 | `joaozuneda6#72` | `f3dd967` | Marcador EST-07 restrito ao almoxarifado, com `pode_consultar_divergencias_criticas` nova e os operandos `Físico`/`Reservado` gated. Bullet de catálogo na matriz §5. |
+| 181 | `joaozuneda6#73` | `4fdf1e0` | `marcar_lida_view` passou a consumir a policy; negativa vira `Http404`. Cláusula de atividade no selector, corrigindo o USR-01. Bullet de notificações na matriz §5. |
+
+**Armadilha de processo, custou uma rodada inteira.** Os corpos das quatro PRs diziam "issue fechada manualmente após o merge, já que a issue vive no outro remote" — e ninguém fechou. O merge não fecha issue de outro remote, e `Closes #N` no corpo também não atravessa. **Fechar é passo manual explícito depois do merge**, não consequência dele. As quatro passaram quatro dias abertas dizendo que o trabalho estava por fazer.
+
+**Em andamento**
 
 | # | PR | O que entrega |
 |---|---|---|
-| 182 | `joaozuneda6#70` | `listar_saidas_excepcionais` perde o `ator_id` morto. Leva nota normativa ao `CONVENTIONS.md`: `ator_id` em selector é reservado ao sufixo `_visiveis_para`. |
-| 167 | `joaozuneda6#71` | Legenda do preview SCPI **removida**, não corrigida — ver decisão abaixo. |
-| 178 | `joaozuneda6#72` | Marcador EST-07 restrito ao almoxarifado, com `pode_consultar_divergencias_criticas` nova e os operandos `Físico`/`Reservado` gated. Bullet de catálogo na matriz §5. |
-| 181 | `joaozuneda6#73` | `marcar_lida_view` passa a consumir a policy; negativa vira `Http404`. Cláusula de atividade no selector, corrigindo o USR-01. Bullet de notificações na matriz §5. |
+| 183 | `joaozuneda6#75` | Contagem do sino sai do `except Exception` com fallback zero: tolera só `django.db.Error` e devolve `None`. Sem mudança de template — os dois `{% if %}` de `base_auth.html` já tratam falsy. |
 
 **Decisões desta rodada, que mudaram o escopo do que as issues pediam:**
 
@@ -88,17 +96,17 @@ Nota factual: a policy real é `apps/estoque/policies.py:56`, não `apps/account
 |---|---|---|---|
 | 183 | contagem do sino em `except Exception` com fallback zero, em toda página autenticada — zero é indistinguível de "nada pendente". Mesma classe de defeito que a #175 consertou. | `ready-for-agent` | — |
 
-**Aberto — 8 waves, todas as issues triadas (nenhuma `needs-triage` restante)**
+**Aberto — todas triadas (nenhuma `needs-triage` restante). A onda 6 é a #173 fatiada em quatro**
 
 | # | Onda | Label | Bloqueio |
 |---|---|---|---|
-| 167 | 4 | **em PR** (`joaozuneda6#71`) | — |
-| 178 | 5 | **em PR** (`joaozuneda6#72`) | — |
-| 181 | 5 | **em PR** (`joaozuneda6#73`) | — |
-| 182 | 5 | **em PR** (`joaozuneda6#70`) | — |
-| 183 | 5 | `ready-for-agent` (spinoff da #181) | — |
-| 173 | 6 | `ready-for-human` (guarda-chuva, fatiar exige julgamento humano) | — |
-| 172 | 7 | `ready-for-human` (decisão de vocabulário visual) | 173(b) documentar a gramática de formas |
+| 183 | 5 | **em PR** (`joaozuneda6#75`) | — |
+| 187 | 6 | `bug`, `ready-for-agent` — fatia (d) da #173 | — |
+| 184 | 6 | `ready-for-agent` — fatia (a) da #173 | — |
+| 185 | 6 | `ready-for-agent` — fatia (b) da #173 | — |
+| 186 | 6 | `ready-for-agent` — fatia (c) da #173 | — |
+| 173 | 6 | guarda-chuva, aberta até as quatro filhas fecharem | #184, #185, #186, #187 |
+| 172 | 7 | `ready-for-human` (decisão de vocabulário visual) | **#185** documentar a gramática de formas |
 | 170 | 8 | `needs-info` | resposta do chefe de almoxarifado |
 | 171 | 9 | `needs-info` | export real do SCPI |
 | 169 | 10 | `needs-info` | medição da rede do piloto |
@@ -113,10 +121,11 @@ Nota factual: a policy real é `apps/estoque/policies.py:56`, não `apps/account
 3. ~~**#177** — 4 variantes cruas de `badge.html`.~~ **Feito e fechada — PR #66** (squash `0ee1949`, empilhada sobre a #65, retargetou pra `main` sozinha ao mergear a #65).
 3b. ~~**`quantidade.html`**~~ **Feito e fechada — PR #68** (merge `421ce15`, sem CodeRabbit).
 3c. ~~**#166**~~ **Feita e fechada — PR #69** (merge `95e8018`). Emendou a ADR-0019 no caminho.
-4. ~~**#167**~~ **Em PR — `joaozuneda6#71`.** Fechada por remoção da legenda. O bullet das pílulas do #173 **não** entrou: a premissa dele estava errada (ver "Candidatos"), e a colisão real precisa de mudança no componente global.
-5. ~~**#178, #181, #182**~~ **Em PR — `joaozuneda6#72`, `#73`, `#70`.** Confirmado que não há conflito de hunk entre #178 e #182, apesar de editarem o mesmo `selectors.py`: as regiões são disjuntas (20-27 vs 304-338; testes 9-78 vs 467-549). A #178 gerou a #183.
-6. **#173, fatiada em 3** — (a) copy e vocabulário; (b) `DESIGN.md`; (c) navegação e responsivo. Anexar os candidatos novos antes de abrir o primeiro PR.
-7. **#172** — depois que 6(b) documentar a gramática de formas.
+4. ~~**#167**~~ **Feita e fechada — PR `joaozuneda6#71`** (merge `43b6dee`). Fechada por remoção da legenda. O bullet das pílulas do #173 **não** entrou: a premissa dele estava errada (ver "Candidatos"), e a colisão real precisa de mudança no componente global.
+5. ~~**#178, #181, #182**~~ **Feitas e fechadas — PRs `joaozuneda6#72`, `#73`, `#70`.** Não houve conflito de hunk entre #178 e #182, apesar de editarem o mesmo `selectors.py`: as regiões eram disjuntas (20-27 vs 304-338; testes 9-78 vs 467-549). A #178 gerou a #183.
+5b. **#183** — **em PR, `joaozuneda6#75`.**
+6. ~~**#173, fatiada em 3**~~ **Fatiada em 4 e aberta: #184 (a), #185 (b), #186 (c), #187 (d).** A quarta fatia existe porque cinco dos candidatos anexados não eram achado estético e sim **defeito de comportamento** — diluí-los em (a)/(b)/(c) enterraria bug sob revisão de copy. **Ordem: #187 primeiro**, depois #185 (que destrava a #172), depois #184 e #186.
+7. **#172** — depois que a **#185** documentar a gramática de formas.
 8. ~~**#176, metade de permissão** — quem é o dono da importação SCPI.~~ **Feito e fechada — PR #63.** Domínio decidiu: chefe de almoxarifado. Gerou #178, #179, #180.
 9. **#170** — quando o chefe de almoxarifado responder.
 10. **#171** — quando o export real chegar. Cada quebra vira issue própria.
@@ -129,8 +138,9 @@ Nota factual: a policy real é `apps/estoque/policies.py:56`, não `apps/account
 - **#168 → #166, #177.** Os três editam `test_tokens_semanticos.py`. A #168 mexe na constante `INPUT_CSS`; as outras duas acrescentam cobertura. Fora de ordem = conflito garantido.
 - **#177 ≡ #166 em forma.** Cor que existe, par que existe, guarda que não alcança — uma por paleta crua, outra por par pai/filho. Entender o guarda duas vezes é desperdício.
 - ~~**#166 → #167, #173, #174.**~~ **Satisfeita.** A varredura está no lugar: toda mudança de markup daqui em diante nasce medida, nas 11 telas cobertas.
-- **#173 ⊃ #167.** O bullet das pílulas do preview SCPI é o mesmo arquivo da #167.
-- **#173(b) → #172.** Os bullets de `DESIGN.md` fixam a gramática que o triângulo vai estender. Documentar antes de acrescentar.
+- ~~**#173 ⊃ #167.**~~ **Resolvida por medição**: o bullet das pílulas era falso (ver "Candidatos"), e a colisão real foi para a **#185**, que toca `filter_chips.html` — componente global que arrasta as 11 telas da varredura da #166.
+- **#185 → #172.** Os bullets de `DESIGN.md` fixam a gramática que o triângulo vai estender. Documentar antes de acrescentar.
+- **#187 antes de #184/#186.** Não é dependência de código, é de severidade: bug de comportamento não espera revisão de copy.
 - **#176 se divide em duas metades independentes.** A do laço fechado é defeito puro e sai sozinha; a da policy espera decisão de domínio.
 - **Sem dependência de código real entre as demais.** As dependências que importam neste backlog são de **informação** (respostas humanas) e de **contaminação de medição**, não de build.
 
@@ -138,14 +148,29 @@ Nota factual: a policy real é `apps/estoque/policies.py:56`, não `apps/account
 
 **Fechado e mergeado — PR `joaozuneda6/WMS-SAEP-v2#68`** (merge `421ce15`, sem CodeRabbit, merge manual do usuário). Os dois P1 vizinhos de `components/quantidade.html` (linha 60, `text-tertiary` reprovando contraste; linha 64, `tom` não propagava pra `referencia`) saíram no mesmo PR. Pull request criada com corpo corrompido por expansão de crase no shell (`` `tom` `` virou tentativa de comando) — corrigido via `gh pr edit --body-file`. Nota pra próxima vez: nunca passar `--body` inline com crases dentro de aspas duplas no bash; usar heredoc/arquivo.
 
-## Candidatos a anexar ao #173
+## Candidatos do #173 — distribuídos em 2026-09-08
 
-A remedição achou itens que não estão no bundle. Anexar antes de fatiar: DELTA do SCPI sem unidade nas duas telas; `motivo` gravado como slug no livro-razão imutável; `Doação` num seletor que o `PRODUCT.md` declara fora de escopo; `@drop` que submete sem revisão e mata o `data-prevent-double-submit`; ordenação que exibe o inverso do que mostra; `IntegerField` num material medido em metros.
+Todos os candidatos da remedição foram para uma fatia. Nada ficou sem dono:
 
-**Correção de um bullet existente, medida na #167 (2026-09-08).** O bullet que diz que contadores (`5 linhas`) e filtros (`Só divergências`) vestem a mesma pílula a ~170px **não se sustenta**: os contadores são `rounded-lg` com `px-4 py-2.5` — retângulos, não pílulas — e os chips são `rounded-full`; já se distinguem por forma, e os três contadores se distinguem entre si por matiz. Substituir pelos dois achados reais:
+| Candidato | Foi para |
+|---|---|
+| DELTA do SCPI sem unidade nas duas telas | **#187** — muda schema (`LinhaDivergenteSCPI`) |
+| `motivo` gravado como slug no livro-razão imutável | **#187** |
+| `Doação` num seletor que o `PRODUCT.md` declara fora de escopo | **#187** |
+| `@drop` que submete sem revisão e mata o `data-prevent-double-submit` | **#187** |
+| ordenação que exibe o inverso do que mostra | **#187** |
+| `IntegerField` num material medido em metros | **#187**, por comentário — escapou do corpo no primeiro fatiamento |
+| ordem de foco invertida (`flex-col-reverse`, WCAG 2.4.3) | **#186** |
+| 12 links de navegação sem `focus-visible` autoral | **#186** |
+| chip ativo × badge do cartão (achado da #167) | **#185** — `filter_chips.html` é global |
+| heading ausente na região de resultados do preview (achado da #167) | **#186** |
 
-- **Chip ativo × badge do cartão vestem a mesma pílula.** `filter_chips.html` no estado ativo usa `rounded-full border px-3 py-1.5 bg-primary-muted text-primary-text-strong`; `badge.html variant="blue"` usa `rounded-full bg-primary-muted px-2.5 py-0.5 text-primary-text-strong ring-1`. Mesma cor, mesma forma, diferindo só em tamanho. **Um é link que alterna filtro, o outro é marcador estático de estado** — é defeito de affordance, não de vocabulário. Fica fora do escopo da #167 porque `filter_chips.html` é componente global (o ledger também o usa) e mexer nele arrasta as 11 telas da varredura de contraste da #166.
-- **A região de resultados do preview SCPI não tem heading próprio.** Lacuna preexistente, não criada pela #167 — o `<h2 class="sr-only">` que saiu com a legenda nomeava a legenda, não os resultados. Um `<h2 class="sr-only">` para as linhas do arquivo daria a leitor de tela um alvo de salto para o conteúdo real da tela.
+**Duas peças de schema na #187**: a unidade do `LinhaDivergenteSCPI` e o `IntegerField`. Se a fatia crescer, elas se separam **juntas** — ambas mudam model e ambas exigem `make setup`.
+
+**Correção de um bullet existente, medida na #167 (2026-09-08).** O bullet que diz que contadores (`5 linhas`) e filtros (`Só divergências`) vestem a mesma pílula a ~170px **não se sustenta**: os contadores são `rounded-lg` com `px-4 py-2.5` — retângulos, não pílulas — e os chips são `rounded-full`; já se distinguem por forma, e os três contadores se distinguem entre si por matiz. Os dois achados reais que o substituem:
+
+- **Chip ativo × badge do cartão vestem a mesma pílula.** `filter_chips.html` no estado ativo usa `rounded-full border px-3 py-1.5 bg-primary-muted text-primary-text-strong`; `badge.html variant="blue"` usa `rounded-full bg-primary-muted px-2.5 py-0.5 text-primary-text-strong ring-1`. Mesma cor, mesma forma, diferindo só em tamanho. **Um é link que alterna filtro, o outro é marcador estático de estado** — é defeito de affordance, não de vocabulário. Ficou fora do escopo da #167 porque `filter_chips.html` é componente global (o ledger também o usa) e mexer nele arrasta as 11 telas da varredura de contraste da #166. Foi para a **#185**.
+- **A região de resultados do preview SCPI não tem heading próprio.** Lacuna preexistente, não criada pela #167 — o `<h2 class="sr-only">` que saiu com a legenda nomeava a legenda, não os resultados. Um `<h2 class="sr-only">` para as linhas do arquivo daria a leitor de tela um alvo de salto para o conteúdo real da tela. Foi para a **#186**.
 
 ## Disparar cedo, fora da fila
 
@@ -161,7 +186,8 @@ Itens 8 e 9 têm lead time humano e **zero trabalho de código antes da resposta
 
 - **Não rode a próxima critique antes de fechar a onda 4.** Rodar no meio mistura o efeito dos P0 com o do eixo do componente — o erro de atribuição que a #165 existia justamente para não repetir.
 - **Comparação de nota só é válida like-for-like**: mesmo alvo, mesmo slug (`apps`), sem alvo específico, e sem mostrar a pontuação anterior aos agentes. Calibração diferente entre rodadas vira falso progresso ou falsa regressão.
-- **#173 é guarda-chuva, não issue.** Fatiar antes de pegar.
+- ~~**#173 é guarda-chuva, não issue.**~~ **Fatiada em #184/#185/#186/#187.** Fica aberta como capa até as quatro fecharem.
+- **Merge não fecha issue de outro remote.** Depois de cada merge, fechar a issue no `origin` é passo manual, com comentário linkando a PR e o commit de merge. Quatro issues ficaram abertas por quatro dias porque as PRs *afirmavam* o fechamento em vez de fazê-lo.
 - **#169, #170 e #171 não são tarefas de código** — são uma medição, uma pergunta e um pedido. Não devem ocupar slot de implementação.
 - **#174 é dívida declarada com produção correta.** Primeira a sair do escopo sob pressão de prazo. A #168 fica só porque é barata.
 - Uma branch por issue, nunca commit direto na `main`; vocabulário de triagem em `docs/agents/triage-labels.md`.
